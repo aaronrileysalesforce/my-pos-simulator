@@ -469,22 +469,25 @@
                 <button class="btn btn-secondary" onclick="clearCart()">Clear Cart</button>
             </div>
 
-            <!-- Configuration Section -->
+            <!-- Customer Configuration Section -->
             <div class="config-section">
-                <h2>⚙️ Salesforce Configuration</h2>
-                <div class="input-group">
-                    <label for="orgId">Organization ID:</label>
-                    <input type="text" id="orgId" placeholder="Enter Salesforce Org ID" value="">
-                </div>
+                <h2>👤 Customer Information</h2>
                 <div class="input-group">
                     <label for="customerId">Customer ID:</label>
                     <input type="text" id="customerId" placeholder="Enter Customer ID" value="CUST_001">
                 </div>
-                <div class="input-group">
-                    <label for="instanceUrl">Instance URL:</label>
-                    <input type="text" id="instanceUrl" placeholder="https://yourinstance.salesforce.com" value="">
+                <button class="btn" onclick="saveCustomerInfo()">💾 Save Customer ID</button>
+                
+                <!-- Configuration Status Display -->
+                <div id="configStatus" style="margin-top: 16px;">
+                    <div style="color: #6b7280; font-size: 14px;">
+                        <div>🔧 Salesforce configuration is managed via Heroku Config Vars</div>
+                        <div id="connectionStatus" style="margin-top: 8px;">
+                            <span class="status-indicator status-pending"></span>
+                            Checking connection...
+                        </div>
+                    </div>
                 </div>
-                <button class="btn" onclick="saveConfiguration()">💾 Save Configuration</button>
             </div>
 
             <!-- Add Product Section -->
@@ -553,61 +556,92 @@
         let promotions = [];
         let vouchers = [];
         let apiCallCounter = 0;
-        let configuration = {
-            orgId: '',
-            customerId: 'CUST_001',
-            instanceUrl: ''
+        let customerConfig = {
+            customerId: 'CUST_001'
         };
+        let serverConfig = {};
 
         // API Base URL
         const API_BASE = window.location.origin;
 
         // Load configuration on page load
         window.onload = function() {
-            loadConfiguration();
+            loadCustomerInfo();
             loadServerConfiguration();
             updateCartDisplay();
+            checkConnectionStatus();
         };
 
         async function loadServerConfiguration() {
             try {
                 const response = await fetch(`${API_BASE}/api/config`);
-                const config = await response.json();
+                serverConfig = await response.json();
                 
-                if (config.orgId) {
-                    document.getElementById('orgId').value = config.orgId;
-                    configuration.orgId = config.orgId;
-                }
-                if (config.instanceUrl) {
-                    document.getElementById('instanceUrl').value = config.instanceUrl;
-                    configuration.instanceUrl = config.instanceUrl;
-                }
+                updateConfigurationDisplay();
+                logApiCall('Server Configuration', 'Loaded server configuration', serverConfig, 'success');
             } catch (error) {
                 console.error('Failed to load server configuration:', error);
+                updateConfigurationDisplay();
+                showAlert('Failed to load server configuration', 'error');
             }
         }
 
-        function loadConfiguration() {
-            const saved = localStorage.getItem('pos_config');
-            if (saved) {
-                configuration = JSON.parse(saved);
-                document.getElementById('orgId').value = configuration.orgId;
-                document.getElementById('customerId').value = configuration.customerId;
-                document.getElementById('instanceUrl').value = configuration.instanceUrl || '';
-            }
-        }
-
-        function saveConfiguration() {
-            configuration.orgId = document.getElementById('orgId').value;
-            configuration.customerId = document.getElementById('customerId').value;
-            configuration.instanceUrl = document.getElementById('instanceUrl').value;
-            localStorage.setItem('pos_config', JSON.stringify(configuration));
+        function updateConfigurationDisplay() {
+            const statusDiv = document.getElementById('connectionStatus');
             
-            logApiCall('Configuration', 'Configuration saved successfully', { 
-                configuration: configuration 
+            if (serverConfig.authenticated) {
+                statusDiv.innerHTML = `
+                    <span class="status-indicator status-success"></span>
+                    Connected to Salesforce
+                    <div style="font-size: 12px; margin-top: 4px; color: #059669;">
+                        ✅ Org: ${serverConfig.orgId || 'Not set'}<br>
+                        ✅ Loyalty Program: ${serverConfig.loyaltyProgramId || 'Not configured'}<br>
+                        ✅ Instance: ${serverConfig.instanceUrl || 'Default'}
+                    </div>
+                `;
+            } else {
+                statusDiv.innerHTML = `
+                    <span class="status-indicator status-error"></span>
+                    Not connected to Salesforce
+                    <div style="font-size: 12px; margin-top: 4px; color: #ef4444;">
+                        ❌ Check Heroku Config Vars for Salesforce credentials
+                    </div>
+                `;
+            }
+        }
+
+        async function checkConnectionStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/status`);
+                const status = await response.json();
+                
+                if (status.authenticated) {
+                    showAlert('✅ Connected to Salesforce successfully!', 'success');
+                } else {
+                    showAlert('⚠️ Salesforce connection not configured. Set Config Vars in Heroku Dashboard.', 'info');
+                }
+            } catch (error) {
+                console.error('Connection check failed:', error);
+            }
+        }
+
+        function loadCustomerInfo() {
+            const saved = localStorage.getItem('pos_customer_config');
+            if (saved) {
+                customerConfig = JSON.parse(saved);
+                document.getElementById('customerId').value = customerConfig.customerId;
+            }
+        }
+
+        function saveCustomerInfo() {
+            customerConfig.customerId = document.getElementById('customerId').value;
+            localStorage.setItem('pos_customer_config', JSON.stringify(customerConfig));
+            
+            logApiCall('Customer Configuration', 'Customer ID saved successfully', { 
+                customerId: customerConfig.customerId 
             }, 'success');
             
-            showAlert('Configuration saved successfully!', 'success');
+            showAlert('Customer ID saved successfully!', 'success');
         }
 
         function addProduct() {
@@ -695,8 +729,8 @@
         }
 
         async function getPromotions() {
-            if (!configuration.orgId) {
-                showAlert('Please configure Organization ID first', 'error');
+            if (!serverConfig.authenticated) {
+                showAlert('Salesforce connection not configured. Please set Config Vars in Heroku Dashboard.', 'error');
                 return;
             }
 
@@ -706,8 +740,8 @@
             }
 
             const requestData = {
-                orgId: configuration.orgId,
-                customerId: configuration.customerId,
+                orgId: serverConfig.orgId,
+                customerId: customerConfig.customerId,
                 cartItems: cart.map(item => ({
                     sku: item.sku,
                     quantity: item.quantity,
@@ -750,14 +784,14 @@
         }
 
         async function getVouchers() {
-            if (!configuration.orgId) {
-                showAlert('Please configure Organization ID first', 'error');
+            if (!serverConfig.authenticated) {
+                showAlert('Salesforce connection not configured. Please set Config Vars in Heroku Dashboard.', 'error');
                 return;
             }
 
             const requestData = {
-                orgId: configuration.orgId,
-                customerId: configuration.customerId
+                orgId: serverConfig.orgId,
+                customerId: customerConfig.customerId
             };
 
             logApiCall('GET Vouchers', 'Fetching available vouchers...', requestData, 'pending');
@@ -835,8 +869,8 @@
         }
 
         async function executeTransaction() {
-            if (!configuration.orgId) {
-                showAlert('Please configure Organization ID first', 'error');
+            if (!serverConfig.authenticated) {
+                showAlert('Salesforce connection not configured. Please set Config Vars in Heroku Dashboard.', 'error');
                 return;
             }
 
@@ -851,8 +885,8 @@
             
             const transactionData = {
                 transactionId: `TXN_${Date.now()}`,
-                orgId: configuration.orgId,
-                customerId: configuration.customerId,
+                orgId: serverConfig.orgId,
+                customerId: customerConfig.customerId,
                 timestamp: new Date().toISOString(),
                 items: cart.map(item => ({
                     sku: item.sku,
