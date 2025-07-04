@@ -127,21 +127,6 @@
             overflow: hidden;
         }
 
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn:hover::before {
-            left: 100%;
-        }
-
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
@@ -153,10 +138,6 @@
 
         .btn-success {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         }
 
         .cart-item {
@@ -227,11 +208,6 @@
             transition: all 0.3s ease;
         }
 
-        .remove-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
-        }
-
         .cart-total {
             background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
             color: white;
@@ -243,16 +219,6 @@
             margin: 16px 0;
             position: relative;
             overflow: hidden;
-        }
-
-        .cart-total::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         }
 
         .api-log {
@@ -273,17 +239,6 @@
             border-left: 4px solid #667eea;
             padding-left: 12px;
             position: relative;
-        }
-
-        .api-call::before {
-            content: '';
-            position: absolute;
-            left: -6px;
-            top: 0;
-            width: 8px;
-            height: 8px;
-            background: #667eea;
-            border-radius: 50%;
         }
 
         .api-call-title {
@@ -351,16 +306,6 @@
             overflow: hidden;
         }
 
-        .promotions-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
-        }
-
         .promotion-item {
             background: white;
             border: 1px solid #e5e7eb;
@@ -371,23 +316,6 @@
             justify-content: space-between;
             align-items: center;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .promotion-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        }
-
-        .promotion-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .apply-btn {
@@ -399,33 +327,6 @@
             cursor: pointer;
             font-size: 12px;
             transition: all 0.3s ease;
-        }
-
-        .apply-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
-        }
-
-        .apply-btn:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 2px solid #f3f4f6;
-            border-top: 2px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 8px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         .alert {
@@ -451,40 +352,6 @@
             background: #eff6ff;
             border-color: #3b82f6;
             color: #2563eb;
-        }
-
-        .config-display {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 12px;
-            font-size: 12px;
-            line-height: 1.4;
-        }
-
-        .connectivity-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 500;
-            margin-left: 8px;
-        }
-
-        .connectivity-full {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .connectivity-limited {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .connectivity-error {
-            background: #fee2e2;
-            color: #991b1b;
         }
 
         @media (max-width: 768px) {
@@ -624,48 +491,24 @@
             const statusDiv = document.getElementById('connectionStatus');
             
             if (serverConfig.authenticated) {
-                const connectivityBadge = getConnectivityBadge(serverConfig.connectivityLevel);
                 statusDiv.innerHTML = `
                     <span class="status-indicator status-success"></span>
-                    Connected to Salesforce via External Client App${connectivityBadge}
-                    <div class="config-display">
-                        <div style="color: #059669;">
-                            ✅ Authentication: ${serverConfig.authMethod || 'External Client App'}<br>
-                            ✅ Token Type: ${serverConfig.tokenType || 'Bearer'}<br>
-                            ✅ Org ID: ${serverConfig.orgId || 'Not set'}<br>
-                            ✅ Loyalty Program: ${serverConfig.loyaltyProgramId || 'Not configured'}<br>
-                            ✅ Instance: ${serverConfig.instanceUrl || 'Default'}<br>
-                            ✅ API Version: ${serverConfig.version || 'v58.0'}
-                        </div>
+                    Connected to Salesforce via External Client App
+                    <div style="font-size: 12px; margin-top: 4px; color: #059669;">
+                        ✅ Auth Method: ${serverConfig.authMethod || 'External Client App'}<br>
+                        ✅ Org: ${serverConfig.orgId || 'Not set'}<br>
+                        ✅ Loyalty Program: ${serverConfig.loyaltyProgramId || 'Not configured'}<br>
+                        ✅ Instance: ${serverConfig.instanceUrl || 'Default'}
                     </div>
                 `;
             } else {
                 statusDiv.innerHTML = `
                     <span class="status-indicator status-error"></span>
                     External Client App not connected to Salesforce
-                    <div class="config-display">
-                        <div style="color: #ef4444;">
-                            ❌ Check Heroku Config Vars for External Client App credentials<br>
-                            ❌ Required: SALESFORCE_CLIENT_ID, SALESFORCE_CLIENT_SECRET<br>
-                            ❌ Required: SALESFORCE_USERNAME, SALESFORCE_PASSWORD, SALESFORCE_SECURITY_TOKEN
-                        </div>
+                    <div style="font-size: 12px; margin-top: 4px; color: #ef4444;">
+                        ❌ Check Heroku Config Vars for External Client App credentials
                     </div>
                 `;
-            }
-        }
-
-        function getConnectivityBadge(level) {
-            switch (level) {
-                case 'full_loyalty_access':
-                    return '<span class="connectivity-badge connectivity-full">Full Access</span>';
-                case 'soql_only':
-                    return '<span class="connectivity-badge connectivity-limited">SOQL Only</span>';
-                case 'basic_api_only':
-                    return '<span class="connectivity-badge connectivity-limited">Basic API</span>';
-                case 'no_loyalty_config':
-                    return '<span class="connectivity-badge connectivity-error">No Loyalty Config</span>';
-                default:
-                    return '<span class="connectivity-badge connectivity-error">Limited</span>';
             }
         }
 
@@ -675,29 +518,13 @@
                 const status = await response.json();
                 
                 if (status.authenticated) {
-                    const connectivityText = getConnectivityText(status.connectivityLevel);
-                    showAlert(`✅ External Client App connected successfully! ${connectivityText}`, 'success');
+                    showAlert('✅ External Client App connected successfully!', 'success');
                 } else {
                     showAlert('⚠️ External Client App not configured. Set Config Vars in Heroku Dashboard.', 'info');
                 }
             } catch (error) {
                 console.error('Connection check failed:', error);
                 showAlert('❌ Failed to check External Client App connection', 'error');
-            }
-        }
-
-        function getConnectivityText(level) {
-            switch (level) {
-                case 'full_loyalty_access':
-                    return '(Full Loyalty Management access)';
-                case 'soql_only':
-                    return '(SOQL queries only)';
-                case 'basic_api_only':
-                    return '(Basic API access only)';
-                case 'no_loyalty_config':
-                    return '(Loyalty Program not configured)';
-                default:
-                    return '(Limited access)';
             }
         }
 
@@ -850,8 +677,7 @@
                     }, 'success');
                     
                     const memberInfo = data.member ? ` for ${data.member.name} (${data.member.tier} tier)` : '';
-                    const sourceInfo = data.source === 'salesforce_connect_api' ? ' via Connect API' : ' via SOQL';
-                    showAlert(`Found ${data.promotions.length} promotions${memberInfo}${sourceInfo}!`, 'success');
+                    showAlert(`Found ${data.promotions.length} promotions${memberInfo}!`, 'success');
                 } else {
                     throw new Error(data.error || 'Failed to fetch promotions');
                 }
@@ -899,4 +725,263 @@
                     }, 'success');
                     
                     const memberInfo = data.member ? ` for ${data.member.name}` : '';
-                    const sourceInfo = data.source === 'salesforce_connect_api
+                    showAlert(`Found ${data.vouchers.length} vouchers${memberInfo}!`, 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to fetch vouchers');
+                }
+            } catch (error) {
+                logApiCall('GET Vouchers', 'Failed to fetch vouchers', {
+                    error: error.message,
+                    requestData: requestData
+                }, 'error');
+                showAlert(`Error fetching vouchers: ${error.message}`, 'error');
+            }
+        }
+
+        async function executeTransaction() {
+            if (!serverConfig.authenticated) {
+                showAlert('External Client App not configured. Please set Config Vars in Heroku Dashboard.', 'error');
+                return;
+            }
+
+            if (cart.length === 0) {
+                showAlert('Cart is empty', 'error');
+                return;
+            }
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const tax = subtotal * 0.08;
+            const total = subtotal + tax;
+            
+            const transactionData = {
+                transactionId: `TXN_${Date.now()}`,
+                orgId: serverConfig.orgId,
+                customerId: customerConfig.customerId,
+                timestamp: new Date().toISOString(),
+                items: cart.map(item => ({
+                    sku: item.sku,
+                    name: item.name,
+                    quantity: item.quantity,
+                    unitPrice: item.price,
+                    totalPrice: item.price * item.quantity
+                })),
+                subtotal: subtotal,
+                tax: tax,
+                total: total,
+                appliedPromotions: promotions.filter(p => p.eligible).map(p => p.id),
+                paymentMethod: 'credit_card',
+                status: 'pending'
+            };
+
+            logApiCall('Transaction Execution API', 'Executing transaction via External Client App...', transactionData, 'pending');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/salesforce/loyalty/transaction/execute`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(transactionData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    logApiCall('Transaction Execution API', 'Transaction completed successfully', {
+                        transaction: data,
+                        member: data.member,
+                        loyaltyPoints: data.loyaltyPoints,
+                        source: data.source
+                    }, 'success');
+                    
+                    const memberInfo = data.member ? `\nMember: ${data.member.name} (${data.member.tier})` : '';
+                    const pointsInfo = data.loyaltyPoints ? `\nPoints Earned: ${data.loyaltyPoints.earned}\nNew Balance: ${data.loyaltyPoints.newBalance}` : '';
+                    
+                    showAlert(`Transaction completed!${memberInfo}\nConfirmation: ${data.confirmationNumber}${pointsInfo}`, 'success');
+                    
+                    // Clear cart after successful transaction
+                    setTimeout(() => {
+                        clearCart();
+                    }, 2000);
+                } else {
+                    throw new Error(data.error || 'Transaction failed');
+                }
+            } catch (error) {
+                logApiCall('Transaction Execution API', 'Transaction failed', {
+                    error: error.message,
+                    transactionData: transactionData
+                }, 'error');
+                showAlert(`Transaction failed: ${error.message}`, 'error');
+            }
+        }
+
+        function displayPromotions() {
+            const promotionsSection = document.getElementById('promotionsSection');
+            const promotionsList = document.getElementById('promotionsList');
+
+            if (promotions.length === 0) {
+                promotionsSection.style.display = 'none';
+                return;
+            }
+
+            promotionsSection.style.display = 'block';
+            promotionsList.innerHTML = promotions.map(promo => `
+                <div class="promotion-item">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">${promo.name}</div>
+                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">${promo.description}</div>
+                        <div style="font-size: 12px; font-weight: 500; color: ${promo.eligible ? '#059669' : '#ef4444'};">
+                            ${promo.eligible ? '✅ Eligible' : '❌ Not Eligible'}
+                        </div>
+                        <div style="font-size: 10px; color: #9ca3af;">
+                            ${promo.type} - ${promo.value}${promo.type === 'percentage' ? '%' : promo.type === 'fixed' ? '$' : ''}
+                        </div>
+                    </div>
+                    <button class="apply-btn" ${!promo.eligible ? 'disabled' : ''} 
+                            onclick="applyPromotion('${promo.id}')">
+                        Apply
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function applyPromotion(promoId) {
+            const promotion = promotions.find(p => p.id === promoId);
+            if (promotion) {
+                logApiCall('Apply Promotion', `Applied promotion: ${promotion.name}`, {
+                    promotionId: promoId,
+                    promotion: promotion
+                }, 'success');
+                showAlert(`Promotion "${promotion.name}" applied successfully!`, 'success');
+            }
+        }
+
+        function logApiCall(title, message, data, status = 'success') {
+            apiCallCounter++;
+            const apiLog = document.getElementById('apiLog');
+            const timestamp = new Date().toISOString();
+            
+            const statusClass = status === 'success' ? 'status-success' : 
+                               status === 'error' ? 'status-error' : 'status-pending';
+            
+            const responseClass = status === 'error' ? 'error' : '';
+            
+            const logEntry = `
+                <div class="api-call">
+                    <div class="api-call-title">
+                        <span class="status-indicator ${statusClass}"></span>
+                        ${apiCallCounter}. ${title} - ${timestamp}
+                    </div>
+                    <div class="api-request">
+                        <strong>📤 Request:</strong><br>
+                        ${message}<br>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                    ${status !== 'pending' ? `
+                        <div class="api-response ${responseClass}">
+                            <strong>📥 Response:</strong><br>
+                            Status: ${status.toUpperCase()}<br>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            apiLog.innerHTML = logEntry + apiLog.innerHTML;
+        }
+
+        function clearApiLog() {
+            document.getElementById('apiLog').innerHTML = `
+                <div class="api-log">
+                    <div style="color: #9ca3af; text-align: center; padding: 20px;">
+                        🚀 External Client App API calls will appear here...
+                    </div>
+                </div>
+            `;
+            apiCallCounter = 0;
+        }
+
+        function showAlert(message, type = 'info') {
+            // Create alert element
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <span>${message.replace(/\n/g, '<br>')}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; font-size: 18px; cursor: pointer; padding: 0; margin-left: 12px;">×</button>
+                </div>
+            `;
+            
+            // Insert at the top of the first panel
+            const firstPanel = document.querySelector('.panel');
+            firstPanel.insertBefore(alert, firstPanel.firstChild);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alert.parentElement) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        // Add some sample products for demo
+        function addSampleProducts() {
+            const sampleProducts = [
+                { name: 'iPhone 15 Pro', price: 999.99, sku: 'ELEC-IPHONE15' },
+                { name: 'MacBook Air M2', price: 1199.99, sku: 'ELEC-MBA-M2' },
+                { name: 'Coffee Mug', price: 12.99, sku: 'HOME-MUG-001' },
+                { name: 'Wireless Earbuds', price: 79.99, sku: 'ELEC-EARBUDS' }
+            ];
+            
+            sampleProducts.forEach(product => {
+                cart.push({
+                    id: Date.now().toString() + Math.random(),
+                    ...product,
+                    quantity: 1
+                });
+            });
+            
+            updateCartDisplay();
+            showAlert('Sample products added to cart!', 'info');
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'p':
+                        e.preventDefault();
+                        getPromotions();
+                        break;
+                    case 'v':
+                        e.preventDefault();
+                        getVouchers();
+                        break;
+                    case 'Enter':
+                        e.preventDefault();
+                        executeTransaction();
+                        break;
+                    case 'Delete':
+                        e.preventDefault();
+                        clearCart();
+                        break;
+                }
+            }
+        });
+
+        // Add sample data button for demo purposes
+        setTimeout(() => {
+            if (cart.length === 0) {
+                const demoButton = document.createElement('button');
+                demoButton.className = 'btn btn-secondary';
+                demoButton.innerHTML = '🎮 Load Demo Data';
+                demoButton.onclick = addSampleProducts;
+                demoButton.style.marginTop = '10px';
+                demoButton.style.width = '100%';
+                
+                document.querySelector('.config-section:last-of-type').appendChild(demoButton);
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
