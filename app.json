@@ -1,26 +1,50 @@
 {
   "name": "POS Cart Simulator",
-  "description": "A POS cart transaction simulator with Salesforce Loyalty API integration",
+  "description": "A POS cart transaction simulator with Salesforce Loyalty Management API integration",
   "repository": "https://github.com/yourusername/pos-cart-simulator",
   "logo": "https://cdn.heroku.com/deploy/button.svg",
-  "keywords": ["node", "express", "salesforce", "pos", "loyalty"],
+  "keywords": ["node", "express", "salesforce", "pos", "loyalty", "connect-api"],
   "image": "heroku/nodejs",
   "env": {
     "NODE_ENV": {
       "description": "Node environment",
       "value": "production"
     },
-    "SALESFORCE_ORG_ID": {
-      "description": "Salesforce Organization ID",
-      "value": "00DKZ000004edcy"
+    "SALESFORCE_CLIENT_ID": {
+      "description": "Salesforce Connected App Consumer Key",
+      "value": ""
+    },
+    "SALESFORCE_CLIENT_SECRET": {
+      "description": "Salesforce Connected App Consumer Secret",
+      "value": ""
+    },
+    "SALESFORCE_USERNAME": {
+      "description": "Salesforce Username for API access",
+      "value": ""
+    },
+    "SALESFORCE_PASSWORD": {
+      "description": "Salesforce Password for API access",
+      "value": ""
+    },
+    "SALESFORCE_SECURITY_TOKEN": {
+      "description": "Salesforce Security Token",
+      "value": ""
     },
     "SALESFORCE_INSTANCE_URL": {
       "description": "Salesforce Instance URL",
-      "value": "https://trailsignup-6cea4737f4bfa1.lightning.force.com"
+      "value": "https://login.salesforce.com"
     },
     "SALESFORCE_API_VERSION": {
       "description": "Salesforce API Version",
-      "value": "v61.0"
+      "value": "v58.0"
+    },
+    "SALESFORCE_LOYALTY_PROGRAM_ID": {
+      "description": "Salesforce Loyalty Program ID (starts with 0ly)",
+      "value": ""
+    },
+    "SALESFORCE_ORG_ID": {
+      "description": "Salesforce Organization ID",
+      "value": ""
     }
   },
   "formation": {
