@@ -80,18 +80,30 @@ async function authenticateWithSalesforce() {
         
         const authUrl = `${SALESFORCE_CONFIG.instanceUrl}/services/oauth2/token`;
         
-        // OAuth 2.0 Password Flow for External Client App
-        const authData = new URLSearchParams({
-            grant_type: 'password',
-            client_id: SALESFORCE_CONFIG.clientId,
-            client_secret: SALESFORCE_CONFIG.clientSecret,
-            username: SALESFORCE_CONFIG.username,
-            password: SALESFORCE_CONFIG.password + SALESFORCE_CONFIG.securityToken,
-            scope: 'api chatter_api refresh_token openid'
-        });
+        // Try Client Credentials Flow first (preferred for server-to-server)
+        let authData;
+        try {
+            console.log('🔐 Attempting Client Credentials Flow...');
+            authData = new URLSearchParams({
+                grant_type: 'client_credentials',
+                client_id: SALESFORCE_CONFIG.clientId,
+                client_secret: SALESFORCE_CONFIG.clientSecret,
+                scope: 'api chatter_api'
+            });
+        } catch (clientCredentialsError) {
+            console.log('⚠️ Client Credentials Flow not available, falling back to Password Flow...');
+            // Fallback to Username-Password Flow
+            authData = new URLSearchParams({
+                grant_type: 'password',
+                client_id: SALESFORCE_CONFIG.clientId,
+                client_secret: SALESFORCE_CONFIG.clientSecret,
+                username: SALESFORCE_CONFIG.username,
+                password: SALESFORCE_CONFIG.password + SALESFORCE_CONFIG.securityToken,
+                scope: 'api chatter_api refresh_token openid'
+            });
+        }
 
         console.log(`📡 Authenticating with: ${authUrl}`);
-        console.log(`👤 Username: ${SALESFORCE_CONFIG.username}`);
         console.log(`🔑 Client ID: ${SALESFORCE_CONFIG.clientId.substring(0, 10)}...`);
 
         const response = await axios.post(authUrl, authData, {
@@ -113,11 +125,13 @@ async function authenticateWithSalesforce() {
             scope: authResult.scope,
             authenticated: true,
             error: null,
-            lastAttempt: salesforceAuth.lastAttempt
+            lastAttempt: salesforceAuth.lastAttempt,
+            grantType: authData.get('grant_type')
         };
 
         console.log('✅ External Client App OAuth authentication successful!');
         console.log(`📍 Instance: ${salesforceAuth.instanceUrl}`);
+        console.log(`🔐 Grant Type: ${salesforceAuth.grantType}`);
         console.log(`🔐 Token Type: ${salesforceAuth.tokenType}`);
         console.log(`📅 Expires: ${new Date(salesforceAuth.expiresAt).toISOString()}`);
         console.log(`🎯 Scope: ${salesforceAuth.scope}`);
@@ -141,11 +155,11 @@ async function authenticateWithSalesforce() {
         if (error.response?.data?.error === 'invalid_client_id') {
             console.error('💡 Fix: Verify SALESFORCE_CLIENT_ID (Consumer Key) in Heroku Config Vars');
         } else if (error.response?.data?.error === 'invalid_client') {
-            console.error('💡 Fix: Ensure External Client App is deployed and OAuth is enabled');
+            console.error('💡 Fix: Ensure External Client App is deployed and OAuth flows are enabled');
         } else if (error.response?.data?.error === 'invalid_grant') {
-            console.error('💡 Fix: Check username, password, and security token combination');
+            console.error('💡 Fix: Check username, password, and security token combination OR enable Client Credentials Flow');
         } else if (error.response?.data?.error === 'unsupported_grant_type') {
-            console.error('💡 Fix: Enable OAuth password flow in External Client App');
+            console.error('💡 Fix: Enable Client Credentials Flow or Authorization Code Flow in External Client App');
         } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
             console.error('💡 Fix: Check network connectivity and Salesforce instance URL');
         }
