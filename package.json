@@ -1,5 +1,5 @@
 {
-  "name": "pos-cart-simulator",
+  "name": "my-pos-simulator",
   "version": "2.0.0",
   "description": "POS Cart Transaction Simulator with Salesforce Loyalty Management API Integration using External Client Apps",
   "main": "server.js",
