@@ -1,50 +1,69 @@
 {
-  "name": "POS Cart Simulator",
-  "description": "A POS cart transaction simulator with Salesforce Loyalty Management API integration",
-  "repository": "https://github.com/yourusername/pos-cart-simulator",
+  "name": "POS Cart Transaction Simulator",
+  "description": "Point of Sale cart simulator with real Salesforce Loyalty Management API integration using External Client Apps",
+  "repository": "https://github.com/aaronrileysalesforce/my-pos-simulator",
   "logo": "https://cdn.heroku.com/deploy/button.svg",
-  "keywords": ["node", "express", "salesforce", "pos", "loyalty", "connect-api"],
+  "keywords": [
+    "node", 
+    "express", 
+    "salesforce", 
+    "pos", 
+    "loyalty", 
+    "external-client-app",
+    "connect-api"
+  ],
   "image": "heroku/nodejs",
+  "success_url": "/",
   "env": {
     "NODE_ENV": {
-      "description": "Node environment",
-      "value": "production"
+      "description": "Node.js environment",
+      "value": "production",
+      "required": true
     },
     "SALESFORCE_CLIENT_ID": {
-      "description": "Salesforce Connected App Consumer Key",
-      "value": ""
+      "description": "Salesforce External Client App Consumer Key (from Connected App setup)",
+      "value": "",
+      "required": true
     },
     "SALESFORCE_CLIENT_SECRET": {
-      "description": "Salesforce Connected App Consumer Secret",
-      "value": ""
+      "description": "Salesforce External Client App Consumer Secret (from Connected App setup)",
+      "value": "",
+      "required": true
     },
     "SALESFORCE_USERNAME": {
-      "description": "Salesforce Username for API access",
-      "value": ""
+      "description": "Salesforce API User Username (dedicated user with Loyalty Management permissions)",
+      "value": "",
+      "required": true
     },
     "SALESFORCE_PASSWORD": {
-      "description": "Salesforce Password for API access",
-      "value": ""
+      "description": "Salesforce API User Password",
+      "value": "",
+      "required": true
     },
     "SALESFORCE_SECURITY_TOKEN": {
-      "description": "Salesforce Security Token",
-      "value": ""
+      "description": "Salesforce API User Security Token (concatenated with password for External Client App)",
+      "value": "",
+      "required": true
     },
     "SALESFORCE_INSTANCE_URL": {
-      "description": "Salesforce Instance URL",
-      "value": "https://login.salesforce.com"
+      "description": "Salesforce Login URL (use https://login.salesforce.com for production or https://test.salesforce.com for sandbox)",
+      "value": "https://login.salesforce.com",
+      "required": false
     },
     "SALESFORCE_API_VERSION": {
-      "description": "Salesforce API Version",
-      "value": "v58.0"
+      "description": "Salesforce API version to use (v58.0 or higher recommended for Loyalty Management)",
+      "value": "v58.0",
+      "required": false
     },
     "SALESFORCE_LOYALTY_PROGRAM_ID": {
-      "description": "Salesforce Loyalty Program ID (starts with 0ly)",
-      "value": ""
+      "description": "Salesforce Loyalty Program ID (18-character ID starting with '0ly')",
+      "value": "",
+      "required": false
     },
     "SALESFORCE_ORG_ID": {
-      "description": "Salesforce Organization ID",
-      "value": ""
+      "description": "Salesforce Organization ID (18-character ID starting with '00D')",
+      "value": "",
+      "required": false
     }
   },
   "formation": {
@@ -57,5 +76,9 @@
     {
       "url": "heroku/nodejs"
     }
-  ]
+  ],
+  "addons": [],
+  "scripts": {
+    "postdeploy": "echo 'POS Simulator deployed! Configure your Salesforce External Client App credentials in the Heroku dashboard.'"
+  }
 }
