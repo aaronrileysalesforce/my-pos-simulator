@@ -12,15 +12,15 @@
     },
     "SALESFORCE_ORG_ID": {
       "description": "Salesforce Organization ID",
-      "value": ""
+      "value": "00DKZ000004edcy"
     },
     "SALESFORCE_INSTANCE_URL": {
       "description": "Salesforce Instance URL",
-      "value": "https://yourinstance.salesforce.com"
+      "value": "https://trailsignup-6cea4737f4bfa1.lightning.force.com"
     },
     "SALESFORCE_API_VERSION": {
       "description": "Salesforce API Version",
-      "value": "v58.0"
+      "value": "v61.0"
     }
   },
   "formation": {
