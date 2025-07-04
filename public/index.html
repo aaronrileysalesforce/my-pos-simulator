@@ -85,6 +85,44 @@
             background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         }
 
+        .error-section {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 2px solid #ef4444;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .error-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .success-section {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .success-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+        }
+
         .input-group {
             margin-bottom: 16px;
         }
@@ -125,11 +163,19 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            display: inline-block;
+            text-decoration: none;
         }
 
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .btn-secondary {
@@ -138,6 +184,10 @@
 
         .btn-success {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         }
 
         .cart-item {
@@ -162,11 +212,6 @@
             bottom: 0;
             width: 4px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .cart-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .cart-item-info {
@@ -296,62 +341,47 @@
             background: #f59e0b;
         }
 
-        .promotions-section {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border: 1px solid #fcd34d;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .promotion-item {
-            background: white;
-            border: 1px solid #e5e7eb;
+        .troubleshooting-steps {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
             padding: 16px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
+            margin-top: 12px;
+            font-size: 13px;
+            line-height: 1.5;
         }
 
-        .apply-btn {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
+        .troubleshooting-steps h4 {
+            color: #1f2937;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .troubleshooting-steps ol {
+            padding-left: 20px;
+            color: #4b5563;
+        }
+
+        .troubleshooting-steps li {
+            margin-bottom: 4px;
+        }
+
+        .troubleshooting-steps code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
             font-size: 12px;
-            transition: all 0.3s ease;
         }
 
-        .alert {
-            padding: 12px 16px;
+        .mock-data-notice {
+            background: #fffbeb;
+            border: 1px solid #f59e0b;
             border-radius: 8px;
-            margin-bottom: 16px;
-            border: 1px solid;
-        }
-
-        .alert-success {
-            background: #ecfdf5;
-            border-color: #10b981;
-            color: #047857;
-        }
-
-        .alert-error {
-            background: #fef2f2;
-            border-color: #ef4444;
-            color: #dc2626;
-        }
-
-        .alert-info {
-            background: #eff6ff;
-            border-color: #3b82f6;
-            color: #2563eb;
+            padding: 12px;
+            margin: 16px 0;
+            font-size: 13px;
+            color: #92400e;
         }
 
         @media (max-width: 768px) {
@@ -370,6 +400,11 @@
                 <button class="btn btn-secondary" onclick="clearCart()">Clear Cart</button>
             </div>
 
+            <!-- Connection Status Section -->
+            <div id="connectionStatusSection">
+                <!-- Will be populated by JavaScript -->
+            </div>
+
             <!-- Customer Configuration Section -->
             <div class="config-section">
                 <h2>👤 Customer Information</h2>
@@ -378,17 +413,6 @@
                     <input type="text" id="customerId" placeholder="Enter Customer ID" value="CUST_001">
                 </div>
                 <button class="btn" onclick="saveCustomerInfo()">💾 Save Customer ID</button>
-                
-                <!-- Configuration Status Display -->
-                <div id="configStatus" style="margin-top: 16px;">
-                    <div style="color: #6b7280; font-size: 14px;">
-                        <div>🔧 Salesforce configuration managed via Heroku Config Vars</div>
-                        <div id="connectionStatus" style="margin-top: 8px;">
-                            <span class="status-indicator status-pending"></span>
-                            Checking External Client App connection...
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Add Product Section -->
@@ -418,19 +442,16 @@
                 Total: $0.00
             </div>
 
-            <!-- Available Promotions -->
-            <div class="promotions-section" id="promotionsSection" style="display: none;">
-                <h2>🎁 Available Promotions</h2>
-                <div id="promotionsList">
-                    <!-- Promotions will be populated here -->
-                </div>
+            <!-- Mock Data Notice -->
+            <div id="mockDataNotice" class="mock-data-notice" style="display: none;">
+                ⚠️ <strong>Demo Mode:</strong> Using mock data. Configure External Client App credentials for real Salesforce integration.
             </div>
 
             <!-- Action Buttons -->
             <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
-                <button class="btn" onclick="getPromotions()">🎯 Get Promotions</button>
-                <button class="btn" onclick="getVouchers()">🎫 Get Vouchers</button>
-                <button class="btn btn-success" onclick="executeTransaction()">💳 Execute Transaction</button>
+                <button class="btn" id="promotionsBtn" onclick="getPromotions()">🎯 Get Promotions</button>
+                <button class="btn" id="vouchersBtn" onclick="getVouchers()">🎫 Get Vouchers</button>
+                <button class="btn btn-success" id="transactionBtn" onclick="executeTransaction()">💳 Execute Transaction</button>
             </div>
         </div>
 
@@ -461,6 +482,11 @@
             customerId: 'CUST_001'
         };
         let serverConfig = {};
+        let connectionStatus = {
+            configured: false,
+            authenticated: false,
+            error: null
+        };
 
         // API Base URL
         const API_BASE = window.location.origin;
@@ -470,62 +496,202 @@
             loadCustomerInfo();
             loadServerConfiguration();
             updateCartDisplay();
-            checkConnectionStatus();
+            checkDetailedConnectionStatus();
         };
 
         async function loadServerConfiguration() {
             try {
+                showConnectionStatus('pending', 'Loading External Client App configuration...');
+                
                 const response = await fetch(`${API_BASE}/api/config`);
                 serverConfig = await response.json();
                 
-                updateConfigurationDisplay();
                 logApiCall('Server Configuration', 'Loaded External Client App configuration', serverConfig, 'success');
+                
+                if (serverConfig.configured) {
+                    if (serverConfig.authenticated) {
+                        showConnectionStatus('success', 'External Client App connected successfully!');
+                    } else {
+                        showConnectionStatus('warning', 'External Client App configured but not authenticated');
+                    }
+                } else {
+                    showConnectionStatus('error', 'External Client App not configured');
+                }
+                
             } catch (error) {
                 console.error('Failed to load server configuration:', error);
-                updateConfigurationDisplay();
-                showAlert('Failed to load server configuration', 'error');
+                serverConfig = { configured: false, authenticated: false, error: error.message };
+                showConnectionStatus('error', 'Failed to load server configuration');
             }
         }
 
-        function updateConfigurationDisplay() {
-            const statusDiv = document.getElementById('connectionStatus');
-            
-            if (serverConfig.authenticated) {
-                statusDiv.innerHTML = `
-                    <span class="status-indicator status-success"></span>
-                    Connected to Salesforce via External Client App
-                    <div style="font-size: 12px; margin-top: 4px; color: #059669;">
-                        ✅ Auth Method: ${serverConfig.authMethod || 'External Client App'}<br>
-                        ✅ Org: ${serverConfig.orgId || 'Not set'}<br>
-                        ✅ Loyalty Program: ${serverConfig.loyaltyProgramId || 'Not configured'}<br>
-                        ✅ Instance: ${serverConfig.instanceUrl || 'Default'}
-                    </div>
-                `;
-            } else {
-                statusDiv.innerHTML = `
-                    <span class="status-indicator status-error"></span>
-                    External Client App not connected to Salesforce
-                    <div style="font-size: 12px; margin-top: 4px; color: #ef4444;">
-                        ❌ Check Heroku Config Vars for External Client App credentials
-                    </div>
-                `;
-            }
-        }
-
-        async function checkConnectionStatus() {
+        async function checkDetailedConnectionStatus() {
             try {
                 const response = await fetch(`${API_BASE}/api/auth/status`);
                 const status = await response.json();
                 
-                if (status.authenticated) {
-                    showAlert('✅ External Client App connected successfully!', 'success');
-                } else {
-                    showAlert('⚠️ External Client App not configured. Set Config Vars in Heroku Dashboard.', 'info');
-                }
+                connectionStatus = {
+                    configured: status.configured,
+                    authenticated: status.authenticated,
+                    error: status.error,
+                    connectivityLevel: status.connectivityLevel,
+                    troubleshooting: status.troubleshooting
+                };
+                
+                updateConnectionDisplay(status);
+                updateButtonStates();
+                
+                logApiCall('Authentication Status', 'Checked External Client App status', status, 
+                    status.authenticated ? 'success' : 'error');
+                
             } catch (error) {
                 console.error('Connection check failed:', error);
-                showAlert('❌ Failed to check External Client App connection', 'error');
+                connectionStatus = { configured: false, authenticated: false, error: error.message };
+                showConnectionStatus('error', 'Connection check failed');
             }
+        }
+
+        function updateConnectionDisplay(status) {
+            const statusSection = document.getElementById('connectionStatusSection');
+            
+            if (!status.configured) {
+                statusSection.innerHTML = `
+                    <div class="error-section">
+                        <h2>❌ External Client App Not Configured</h2>
+                        <p><strong>Missing Configuration:</strong> External Client App credentials not found.</p>
+                        <div class="troubleshooting-steps">
+                            <h4>🔧 Setup Instructions:</h4>
+                            <ol>
+                                <li>Go to Heroku Dashboard → Your App → Settings → Config Vars</li>
+                                <li>Add: <code>SALESFORCE_CLIENT_ID</code> (Consumer Key from External Client App)</li>
+                                <li>Add: <code>SALESFORCE_CLIENT_SECRET</code> (Consumer Secret from External Client App)</li>
+                                <li>Add: <code>SALESFORCE_USERNAME</code> (API user with Loyalty Management permissions)</li>
+                                <li>Add: <code>SALESFORCE_PASSWORD</code> (API user password)</li>
+                                <li>Add: <code>SALESFORCE_SECURITY_TOKEN</code> (API user security token)</li>
+                                <li>Restart your Heroku app</li>
+                            </ol>
+                        </div>
+                        ${status.configurationErrors ? `
+                            <div style="margin-top: 12px; padding: 8px; background: #fee2e2; border-radius: 6px; font-size: 12px;">
+                                <strong>Missing:</strong> ${status.configurationErrors.join(', ')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                document.getElementById('mockDataNotice').style.display = 'block';
+                return;
+            }
+            
+            if (!status.authenticated) {
+                statusSection.innerHTML = `
+                    <div class="error-section">
+                        <h2>⚠️ External Client App Authentication Failed</h2>
+                        <p><strong>Configuration found but authentication failed.</strong></p>
+                        <div style="margin: 12px 0; padding: 12px; background: #fef2f2; border-radius: 6px;">
+                            <strong>Error:</strong> ${status.error}
+                        </div>
+                        <div class="troubleshooting-steps">
+                            <h4>🔧 Troubleshooting Steps:</h4>
+                            <ol>
+                                <li>Verify External Client App OAuth settings are enabled</li>
+                                <li>Check username, password, and security token combination</li>
+                                <li>Ensure API user has "Loyalty Management User" permission</li>
+                                <li>Verify External Client App Consumer Key and Secret</li>
+                                <li>Check Salesforce instance URL (production vs sandbox)</li>
+                            </ol>
+                        </div>
+                        ${status.lastAttempt ? `
+                            <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
+                                Last attempt: ${new Date(status.lastAttempt).toLocaleString()}
+                            </div>
+                        ` : ''}
+                        <button class="btn" onclick="retryAuthentication()" style="margin-top: 12px;">
+                            🔄 Retry Authentication
+                        </button>
+                    </div>
+                `;
+                document.getElementById('mockDataNotice').style.display = 'block';
+                return;
+            }
+            
+            // Success state
+            const connectivityInfo = getConnectivityInfo(status.connectivityLevel);
+            statusSection.innerHTML = `
+                <div class="success-section">
+                    <h2>✅ External Client App Connected</h2>
+                    <p><strong>Successfully authenticated with Salesforce!</strong></p>
+                    <div style="margin: 12px 0; padding: 12px; background: #ecfdf5; border-radius: 6px; font-size: 13px;">
+                        <div><strong>Instance:</strong> ${status.instanceUrl}</div>
+                        <div><strong>Auth Method:</strong> ${status.authMethod}</div>
+                        <div><strong>Token Type:</strong> ${status.tokenType}</div>
+                        <div><strong>Connectivity:</strong> ${connectivityInfo.label}</div>
+                        ${status.orgId ? `<div><strong>Org ID:</strong> ${status.orgId}</div>` : ''}
+                        ${status.loyaltyProgramId ? `<div><strong>Loyalty Program:</strong> ${status.loyaltyProgramId}</div>` : ''}
+                    </div>
+                    <div style="font-size: 12px; color: #059669;">
+                        ${connectivityInfo.description}
+                    </div>
+                </div>
+            `;
+            document.getElementById('mockDataNotice').style.display = 'none';
+        }
+
+        function getConnectivityInfo(level) {
+            switch (level) {
+                case 'full_access':
+                    return {
+                        label: 'Full Access',
+                        description: 'Complete Salesforce Loyalty Management integration with Connect API access.'
+                    };
+                case 'soql_only':
+                    return {
+                        label: 'SOQL Only',
+                        description: 'Basic Salesforce integration via SOQL queries. Connect API limited.'
+                    };
+                case 'basic_api':
+                    return {
+                        label: 'Basic API',
+                        description: 'Standard Salesforce API access. Loyalty features may be limited.'
+                    };
+                case 'no_loyalty_config':
+                    return {
+                        label: 'No Loyalty Config',
+                        description: 'Salesforce connected but Loyalty Program ID not configured.'
+                    };
+                default:
+                    return {
+                        label: 'Unknown',
+                        description: 'Connection status could not be determined.'
+                    };
+            }
+        }
+
+        function updateButtonStates() {
+            const isConnected = connectionStatus.authenticated;
+            const buttons = ['promotionsBtn', 'vouchersBtn', 'transactionBtn'];
+            
+            buttons.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    if (!isConnected) {
+                        btn.style.opacity = '0.6';
+                        btn.title = 'External Client App not connected - will use demo data';
+                    } else {
+                        btn.style.opacity = '1';
+                        btn.title = '';
+                    }
+                }
+            });
+        }
+
+        async function retryAuthentication() {
+            showConnectionStatus('pending', 'Retrying External Client App authentication...');
+            await checkDetailedConnectionStatus();
+        }
+
+        function showConnectionStatus(type, message) {
+            // This is a simplified status update for immediate feedback
+            console.log(`${type.toUpperCase()}: ${message}`);
         }
 
         function loadCustomerInfo() {
@@ -594,7 +760,7 @@
                     <div class="cart-item">
                         <div class="cart-item-info">
                             <div class="cart-item-name">${item.name}</div>
-                            <div class="cart-item-price">$${item.price.toFixed(2)} × ${item.quantity} = $${itemTotal.toFixed(2)}</div>
+                            <div class="cart-item-price">${item.price.toFixed(2)} × ${item.quantity} = ${itemTotal.toFixed(2)}</div>
                             <div style="font-size: 12px; color: #6b7280;">SKU: ${item.sku}</div>
                         </div>
                         <div class="cart-item-actions">
@@ -606,7 +772,7 @@
                 `;
             }).join('');
 
-            cartTotal.innerHTML = `Total: $${total.toFixed(2)}`;
+            cartTotal.innerHTML = `Total: ${total.toFixed(2)}`;
         }
 
         function updateQuantity(itemId, quantity) {
@@ -627,16 +793,10 @@
             promotions = [];
             vouchers = [];
             updateCartDisplay();
-            document.getElementById('promotionsSection').style.display = 'none';
             showAlert('Cart cleared!', 'info');
         }
 
         async function getPromotions() {
-            if (!serverConfig.authenticated) {
-                showAlert('External Client App not configured. Please set Config Vars in Heroku Dashboard.', 'error');
-                return;
-            }
-
             if (cart.length === 0) {
                 showAlert('Please add items to cart first', 'error');
                 return;
@@ -652,7 +812,8 @@
                 }))
             };
 
-            logApiCall('GET Promotions', 'Fetching available promotions via External Client App...', requestData, 'pending');
+            const authStatus = connectionStatus.authenticated ? 'authenticated' : 'demo mode';
+            logApiCall('GET Promotions', `Fetching promotions (${authStatus})...`, requestData, 'pending');
 
             try {
                 const response = await fetch(`${API_BASE}/api/salesforce/loyalty/promotions`, {
@@ -666,20 +827,27 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    promotions = data.promotions;
-                    displayPromotions();
+                    promotions = data.promotions || [];
                     
                     logApiCall('GET Promotions', 'Promotions retrieved successfully', {
-                        member: data.member,
+                        authenticated: data.authenticated,
                         promotions: data.promotions,
-                        metadata: data.metadata,
-                        source: data.source
+                        mockData: data.mockData
                     }, 'success');
                     
-                    const memberInfo = data.member ? ` for ${data.member.name} (${data.member.tier} tier)` : '';
-                    showAlert(`Found ${data.promotions.length} promotions${memberInfo}!`, 'success');
+                    const sourceInfo = data.mockData ? ' (demo data)' : ' (live data)';
+                    showAlert(`Found ${promotions.length} promotions${sourceInfo}!`, data.mockData ? 'info' : 'success');
                 } else {
-                    throw new Error(data.error || 'Failed to fetch promotions');
+                    // Handle mock data response
+                    promotions = data.promotions || [];
+                    
+                    logApiCall('GET Promotions', 'Using demo promotions', {
+                        error: data.error,
+                        mockData: data.mockData,
+                        promotions: data.promotions
+                    }, 'info');
+                    
+                    showAlert(`Demo mode: Found ${promotions.length} sample promotions`, 'info');
                 }
             } catch (error) {
                 logApiCall('GET Promotions', 'Failed to fetch promotions', {
@@ -691,17 +859,13 @@
         }
 
         async function getVouchers() {
-            if (!serverConfig.authenticated) {
-                showAlert('External Client App not configured. Please set Config Vars in Heroku Dashboard.', 'error');
-                return;
-            }
-
             const requestData = {
                 orgId: serverConfig.orgId,
                 customerId: customerConfig.customerId
             };
 
-            logApiCall('GET Vouchers', 'Fetching available vouchers via External Client App...', requestData, 'pending');
+            const authStatus = connectionStatus.authenticated ? 'authenticated' : 'demo mode';
+            logApiCall('GET Vouchers', `Fetching vouchers (${authStatus})...`, requestData, 'pending');
 
             try {
                 const response = await fetch(`${API_BASE}/api/salesforce/loyalty/vouchers`, {
@@ -713,37 +877,22 @@
                 });
 
                 const data = await response.json();
-
-                if (data.success) {
-                    vouchers = data.vouchers;
-                    
-                    logApiCall('GET Vouchers', 'Vouchers retrieved successfully', {
-                        member: data.member,
-                        vouchers: data.vouchers,
-                        metadata: data.metadata,
-                        source: data.source
-                    }, 'success');
-                    
-                    const memberInfo = data.member ? ` for ${data.member.name}` : '';
-                    showAlert(`Found ${data.vouchers.length} vouchers${memberInfo}!`, 'success');
-                } else {
-                    throw new Error(data.error || 'Failed to fetch vouchers');
-                }
+                
+                logApiCall('GET Vouchers', 'Vouchers response', data, data.success ? 'success' : 'info');
+                
+                const sourceInfo = data.mockData ? ' (demo data)' : ' (live data)';
+                const alertType = data.mockData ? 'info' : 'success';
+                showAlert(`Vouchers checked${sourceInfo}`, alertType);
+                
             } catch (error) {
                 logApiCall('GET Vouchers', 'Failed to fetch vouchers', {
-                    error: error.message,
-                    requestData: requestData
+                    error: error.message
                 }, 'error');
                 showAlert(`Error fetching vouchers: ${error.message}`, 'error');
             }
         }
 
         async function executeTransaction() {
-            if (!serverConfig.authenticated) {
-                showAlert('External Client App not configured. Please set Config Vars in Heroku Dashboard.', 'error');
-                return;
-            }
-
             if (cart.length === 0) {
                 showAlert('Cart is empty', 'error');
                 return;
@@ -773,7 +922,8 @@
                 status: 'pending'
             };
 
-            logApiCall('Transaction Execution API', 'Executing transaction via External Client App...', transactionData, 'pending');
+            const authStatus = connectionStatus.authenticated ? 'authenticated' : 'demo mode';
+            logApiCall('Transaction Execution', `Processing transaction (${authStatus})...`, transactionData, 'pending');
 
             try {
                 const response = await fetch(`${API_BASE}/api/salesforce/loyalty/transaction/execute`, {
@@ -785,74 +935,25 @@
                 });
 
                 const data = await response.json();
-
+                
+                logApiCall('Transaction Execution', 'Transaction response', data, data.success ? 'success' : 'info');
+                
                 if (data.success) {
-                    logApiCall('Transaction Execution API', 'Transaction completed successfully', {
-                        transaction: data,
-                        member: data.member,
-                        loyaltyPoints: data.loyaltyPoints,
-                        source: data.source
-                    }, 'success');
-                    
-                    const memberInfo = data.member ? `\nMember: ${data.member.name} (${data.member.tier})` : '';
-                    const pointsInfo = data.loyaltyPoints ? `\nPoints Earned: ${data.loyaltyPoints.earned}\nNew Balance: ${data.loyaltyPoints.newBalance}` : '';
-                    
-                    showAlert(`Transaction completed!${memberInfo}\nConfirmation: ${data.confirmationNumber}${pointsInfo}`, 'success');
-                    
-                    // Clear cart after successful transaction
-                    setTimeout(() => {
-                        clearCart();
-                    }, 2000);
+                    showAlert(`Transaction completed! (Live processing)`, 'success');
                 } else {
-                    throw new Error(data.error || 'Transaction failed');
+                    showAlert(`Transaction simulated (Demo mode): ${data.message}`, 'info');
                 }
+                
+                // Clear cart after any transaction response
+                setTimeout(() => {
+                    clearCart();
+                }, 2000);
+                
             } catch (error) {
-                logApiCall('Transaction Execution API', 'Transaction failed', {
-                    error: error.message,
-                    transactionData: transactionData
+                logApiCall('Transaction Execution', 'Transaction failed', {
+                    error: error.message
                 }, 'error');
                 showAlert(`Transaction failed: ${error.message}`, 'error');
-            }
-        }
-
-        function displayPromotions() {
-            const promotionsSection = document.getElementById('promotionsSection');
-            const promotionsList = document.getElementById('promotionsList');
-
-            if (promotions.length === 0) {
-                promotionsSection.style.display = 'none';
-                return;
-            }
-
-            promotionsSection.style.display = 'block';
-            promotionsList.innerHTML = promotions.map(promo => `
-                <div class="promotion-item">
-                    <div>
-                        <div style="font-weight: 600; margin-bottom: 4px;">${promo.name}</div>
-                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">${promo.description}</div>
-                        <div style="font-size: 12px; font-weight: 500; color: ${promo.eligible ? '#059669' : '#ef4444'};">
-                            ${promo.eligible ? '✅ Eligible' : '❌ Not Eligible'}
-                        </div>
-                        <div style="font-size: 10px; color: #9ca3af;">
-                            ${promo.type} - ${promo.value}${promo.type === 'percentage' ? '%' : promo.type === 'fixed' ? '$' : ''}
-                        </div>
-                    </div>
-                    <button class="apply-btn" ${!promo.eligible ? 'disabled' : ''} 
-                            onclick="applyPromotion('${promo.id}')">
-                        Apply
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        function applyPromotion(promoId) {
-            const promotion = promotions.find(p => p.id === promoId);
-            if (promotion) {
-                logApiCall('Apply Promotion', `Applied promotion: ${promotion.name}`, {
-                    promotionId: promoId,
-                    promotion: promotion
-                }, 'success');
-                showAlert(`Promotion "${promotion.name}" applied successfully!`, 'success');
             }
         }
 
@@ -862,7 +963,8 @@
             const timestamp = new Date().toISOString();
             
             const statusClass = status === 'success' ? 'status-success' : 
-                               status === 'error' ? 'status-error' : 'status-pending';
+                               status === 'error' ? 'status-error' : 
+                               status === 'info' ? 'status-pending' : 'status-pending';
             
             const responseClass = status === 'error' ? 'error' : '';
             
@@ -905,6 +1007,15 @@
             // Create alert element
             const alert = document.createElement('div');
             alert.className = `alert alert-${type}`;
+            alert.style.cssText = `
+                padding: 12px 16px;
+                border-radius: 8px;
+                margin-bottom: 16px;
+                border: 1px solid;
+                background: ${type === 'success' ? '#ecfdf5' : type === 'error' ? '#fef2f2' : '#eff6ff'};
+                border-color: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                color: ${type === 'success' ? '#047857' : type === 'error' ? '#dc2626' : '#2563eb'};
+            `;
             alert.innerHTML = `
                 <div style="display: flex; align-items: center; justify-content: space-between;">
                     <span>${message.replace(/\n/g, '<br>')}</span>
@@ -924,7 +1035,7 @@
             }, 5000);
         }
 
-        // Add some sample products for demo
+        // Add sample products for demo
         function addSampleProducts() {
             const sampleProducts = [
                 { name: 'iPhone 15 Pro', price: 999.99, sku: 'ELEC-IPHONE15' },
@@ -945,31 +1056,7 @@
             showAlert('Sample products added to cart!', 'info');
         }
 
-        // Add keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 'p':
-                        e.preventDefault();
-                        getPromotions();
-                        break;
-                    case 'v':
-                        e.preventDefault();
-                        getVouchers();
-                        break;
-                    case 'Enter':
-                        e.preventDefault();
-                        executeTransaction();
-                        break;
-                    case 'Delete':
-                        e.preventDefault();
-                        clearCart();
-                        break;
-                }
-            }
-        });
-
-        // Add sample data button for demo purposes
+        // Add demo data button after page loads
         setTimeout(() => {
             if (cart.length === 0) {
                 const demoButton = document.createElement('button');
@@ -979,7 +1066,10 @@
                 demoButton.style.marginTop = '10px';
                 demoButton.style.width = '100%';
                 
-                document.querySelector('.config-section:last-of-type').appendChild(demoButton);
+                const configSections = document.querySelectorAll('.config-section');
+                if (configSections.length >= 2) {
+                    configSections[1].appendChild(demoButton);
+                }
             }
         }, 2000);
     </script>
