@@ -1,7 +1,7 @@
 {
   "name": "POS Cart Transaction Simulator",
   "description": "Point of Sale cart simulator with real Salesforce Loyalty Management API integration using External Client Apps",
-  "repository": "https://github.com/aaronrileysalesforce/my-pos-simulator",
+  "repository": "https://github.com/yourusername/pos-cart-simulator",
   "logo": "https://cdn.heroku.com/deploy/button.svg",
   "keywords": [
     "node", 
@@ -29,6 +29,11 @@
       "description": "Salesforce External Client App Consumer Secret (from Connected App setup)",
       "value": "",
       "required": true
+    },
+    "SALESFORCE_CLIENT_API_NAME": {
+      "description": "Salesforce External Client App API Name (e.g., POS_Loyalty_Simulator)",
+      "value": "",
+      "required": false
     },
     "SALESFORCE_USERNAME": {
       "description": "Salesforce API User Username (dedicated user with Loyalty Management permissions)",
