@@ -1,4 +1,4 @@
-// Enhanced server.js with Real Salesforce Loyalty Management APIs
+// Enhanced server.js with External Client App Support for Salesforce Loyalty Management APIs
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Salesforce Authentication Configuration
+// Salesforce External Client App Configuration
 const SALESFORCE_CONFIG = {
     clientId: process.env.SALESFORCE_CLIENT_ID,
     clientSecret: process.env.SALESFORCE_CLIENT_SECRET,
@@ -21,60 +21,89 @@ const SALESFORCE_CONFIG = {
     password: process.env.SALESFORCE_PASSWORD,
     securityToken: process.env.SALESFORCE_SECURITY_TOKEN,
     instanceUrl: process.env.SALESFORCE_INSTANCE_URL || 'https://login.salesforce.com',
-    apiVersion: process.env.SALESFORCE_API_VERSION || 'v61.0',
-    loyaltyProgramId: process.env.SALESFORCE_LOYALTY_PROGRAM_ID
+    apiVersion: process.env.SALESFORCE_API_VERSION || 'v58.0',
+    loyaltyProgramId: process.env.SALESFORCE_LOYALTY_PROGRAM_ID,
+    orgId: process.env.SALESFORCE_ORG_ID
 };
 
 // Store access token in memory (use Redis/database in production)
 let salesforceAuth = {
     accessToken: null,
     instanceUrl: null,
-    expiresAt: null
+    expiresAt: null,
+    tokenType: 'Bearer'
 };
 
-// Salesforce Authentication Functions
+// Salesforce External Client App Authentication
 async function authenticateWithSalesforce() {
     try {
-        console.log('🔐 Authenticating with Salesforce...');
+        console.log('🔐 Authenticating with Salesforce External Client App...');
         
         const authUrl = `${SALESFORCE_CONFIG.instanceUrl}/services/oauth2/token`;
-        const params = new URLSearchParams({
+        
+        // OAuth 2.0 Password Flow for External Client App
+        const authData = {
             grant_type: 'password',
             client_id: SALESFORCE_CONFIG.clientId,
             client_secret: SALESFORCE_CONFIG.clientSecret,
             username: SALESFORCE_CONFIG.username,
-            password: SALESFORCE_CONFIG.password + SALESFORCE_CONFIG.securityToken
-        });
-
-        const response = await axios.post(authUrl, params, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        });
-
-        salesforceAuth = {
-            accessToken: response.data.access_token,
-            instanceUrl: response.data.instance_url,
-            expiresAt: Date.now() + (2 * 60 * 60 * 1000) // 2 hours
+            password: SALESFORCE_CONFIG.password + SALESFORCE_CONFIG.securityToken,
+            scope: 'api chatter_api refresh_token openid'
         };
 
-        console.log('✅ Salesforce authentication successful');
+        const response = await axios.post(authUrl, new URLSearchParams(authData), {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json'
+            },
+            timeout: 10000 // 10 second timeout
+        });
+
+        const authResult = response.data;
+        
+        salesforceAuth = {
+            accessToken: authResult.access_token,
+            instanceUrl: authResult.instance_url,
+            tokenType: authResult.token_type || 'Bearer',
+            expiresAt: Date.now() + (2 * 60 * 60 * 1000), // 2 hours
+            scope: authResult.scope,
+            apiVersion: SALESFORCE_CONFIG.apiVersion
+        };
+
+        console.log('✅ External Client App authentication successful');
+        console.log(`📍 Instance URL: ${salesforceAuth.instanceUrl}`);
+        console.log(`🔑 Token Type: ${salesforceAuth.tokenType}`);
+        console.log(`📅 Expires: ${new Date(salesforceAuth.expiresAt).toISOString()}`);
+        
         return salesforceAuth;
     } catch (error) {
-        console.error('❌ Salesforce authentication failed:', error.response?.data || error.message);
-        throw new Error('Failed to authenticate with Salesforce');
+        console.error('❌ External Client App authentication failed:', error.response?.data || error.message);
+        
+        // Enhanced error messages for common External Client App issues
+        if (error.response?.data?.error === 'invalid_client_id') {
+            console.error('💡 Fix: Verify External Client App Consumer Key is correct');
+        } else if (error.response?.data?.error === 'invalid_client') {
+            console.error('💡 Fix: Ensure External Client App is deployed and OAuth is enabled');
+        } else if (error.response?.data?.error === 'invalid_grant') {
+            console.error('💡 Fix: Check username, password, and security token combination');
+        } else if (error.response?.data?.error === 'unsupported_grant_type') {
+            console.error('💡 Fix: Enable OAuth settings in External Client App');
+        }
+        
+        throw new Error(`External Client App authentication failed: ${error.response?.data?.error_description || error.message}`);
     }
 }
 
-// Check if token is valid and refresh if needed
+// Token validation and refresh for External Client App
 async function ensureValidToken() {
     if (!salesforceAuth.accessToken || Date.now() >= salesforceAuth.expiresAt) {
+        console.log('🔄 Token expired or missing, re-authenticating...');
         await authenticateWithSalesforce();
     }
     return salesforceAuth;
 }
 
-// Generic Salesforce API call function
+// Enhanced Salesforce API call function with External Client App support
 async function callSalesforceAPI(endpoint, method = 'GET', data = null, isConnectAPI = false) {
     try {
         await ensureValidToken();
@@ -87,23 +116,28 @@ async function callSalesforceAPI(endpoint, method = 'GET', data = null, isConnec
             method,
             url: `${baseUrl}/${endpoint}`,
             headers: {
-                'Authorization': `Bearer ${salesforceAuth.accessToken}`,
-                'Content-Type': 'application/json'
-            }
+                'Authorization': `${salesforceAuth.tokenType} ${salesforceAuth.accessToken}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-PrettyPrint': '1'
+            },
+            timeout: 30000 // 30 second timeout for API calls
         };
 
         if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
             config.data = data;
         }
 
+        console.log(`📡 API Call: ${method} ${config.url}`);
         const response = await axios(config);
+        
         return response.data;
     } catch (error) {
-        console.error('Salesforce API call failed:', error.response?.data || error.message);
+        console.error(`❌ Salesforce API call failed: ${method} ${endpoint}`, error.response?.data || error.message);
         
-        // If authentication error, try to re-authenticate once
+        // Handle authentication errors with External Client App
         if (error.response?.status === 401) {
-            console.log('🔄 Token expired, re-authenticating...');
+            console.log('🔄 Received 401, attempting re-authentication...');
             await authenticateWithSalesforce();
             
             // Retry the call with new token
@@ -115,15 +149,18 @@ async function callSalesforceAPI(endpoint, method = 'GET', data = null, isConnec
                 method,
                 url: `${baseUrl}/${endpoint}`,
                 headers: {
-                    'Authorization': `Bearer ${salesforceAuth.accessToken}`,
-                    'Content-Type': 'application/json'
-                }
+                    'Authorization': `${salesforceAuth.tokenType} ${salesforceAuth.accessToken}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                timeout: 30000
             };
             
             if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
                 retryConfig.data = data;
             }
             
+            console.log(`🔁 Retrying API call with fresh token...`);
             const retryResponse = await axios(retryConfig);
             return retryResponse.data;
         }
@@ -132,25 +169,75 @@ async function callSalesforceAPI(endpoint, method = 'GET', data = null, isConnec
     }
 }
 
-// Get Loyalty Member Information
+// Test External Client App connectivity
+async function testExternalClientAppConnectivity() {
+    try {
+        // Test basic API access
+        const orgInfo = await callSalesforceAPI('sobjects/Organization/describe');
+        console.log('✅ Organization API access confirmed');
+        
+        // Test Loyalty Management access if program ID is configured
+        if (SALESFORCE_CONFIG.loyaltyProgramId) {
+            try {
+                const loyaltyProgram = await callSalesforceAPI(`sobjects/LoyaltyProgram/${SALESFORCE_CONFIG.loyaltyProgramId}`);
+                console.log(`✅ Loyalty Program access confirmed: ${loyaltyProgram.Name}`);
+                
+                // Test Connect API for Loyalty Management
+                try {
+                    await callSalesforceAPI(`loyaltymgmt/programs/${SALESFORCE_CONFIG.loyaltyProgramId}`, 'GET', null, true);
+                    console.log('✅ Loyalty Connect API access confirmed');
+                    return 'full_loyalty_access';
+                } catch (connectError) {
+                    console.log('⚠️ Connect API not available, using SOQL fallback');
+                    return 'soql_only';
+                }
+            } catch (loyaltyError) {
+                console.log('⚠️ Loyalty Program not accessible, check permissions');
+                return 'basic_api_only';
+            }
+        } else {
+            console.log('⚠️ Loyalty Program ID not configured');
+            return 'no_loyalty_config';
+        }
+    } catch (error) {
+        console.error('❌ External Client App connectivity test failed:', error.message);
+        return 'no_access';
+    }
+}
+
+// Get Loyalty Member Information with Enhanced Error Handling
 async function getLoyaltyMember(customerId) {
     try {
-        // Query loyalty program member
+        console.log(`🔍 Looking up loyalty member: ${customerId}`);
+        
+        // Enhanced SOQL query with better error handling
         const soqlQuery = `
-            SELECT Id, Contact.Id, Contact.Name, Contact.Email, LoyaltyProgram.Id, 
-                   LoyaltyProgram.Name, MemberStatus, EnrollmentDate, LastActivityDate,
+            SELECT Id, Contact.Id, Contact.Name, Contact.Email, 
+                   LoyaltyProgram.Id, LoyaltyProgram.Name, 
+                   MemberStatus, EnrollmentDate, LastActivityDate,
                    TotalPointsAccrued, TotalPointsRedeemed, TotalPointsExpired,
-                   PointsBalance, TierName
+                   PointsBalance, TierName, MembershipNumber
             FROM LoyaltyProgramMember 
-            WHERE Contact.External_ID__c = '${customerId}' 
+            WHERE (Contact.External_Customer_ID__c = '${customerId}' 
+                   OR Contact.CustomerNumber__c = '${customerId}'
+                   OR Contact.Email = '${customerId}')
             AND LoyaltyProgram.Id = '${SALESFORCE_CONFIG.loyaltyProgramId}'
+            AND MemberStatus = 'Active'
             LIMIT 1
         `;
         
         const result = await callSalesforceAPI(`query?q=${encodeURIComponent(soqlQuery)}`);
-        return result.records.length > 0 ? result.records[0] : null;
+        
+        if (result.records && result.records.length > 0) {
+            const member = result.records[0];
+            console.log(`✅ Found loyalty member: ${member.Contact.Name} (${member.MemberStatus})`);
+            return member;
+        } else {
+            console.log(`⚠️ No loyalty member found for: ${customerId}`);
+            return null;
+        }
     } catch (error) {
-        console.error('Error fetching loyalty member:', error);
+        console.error('❌ Error fetching loyalty member:', error.response?.data || error.message);
         return null;
     }
 }
@@ -636,87 +723,165 @@ app.get('/api/salesforce/loyalty/member/:customerId', async (req, res) => {
     }
 });
 
-// Enhanced configuration endpoint
+// Enhanced configuration endpoint with External Client App status
 app.get('/api/config', (req, res) => {
     res.json({
-        orgId: process.env.SALESFORCE_ORG_ID || '',
-        instanceUrl: salesforceAuth.instanceUrl || process.env.SALESFORCE_INSTANCE_URL || '',
+        orgId: SALESFORCE_CONFIG.orgId || '',
+        instanceUrl: salesforceAuth.instanceUrl || SALESFORCE_CONFIG.instanceUrl || '',
         loyaltyProgramId: SALESFORCE_CONFIG.loyaltyProgramId || '',
-        version: process.env.SALESFORCE_API_VERSION || 'v58.0',
-        authenticated: !!salesforceAuth.accessToken
+        version: SALESFORCE_CONFIG.apiVersion || 'v58.0',
+        authenticated: !!salesforceAuth.accessToken,
+        tokenType: salesforceAuth.tokenType || 'Bearer',
+        authMethod: 'external_client_app',
+        scope: salesforceAuth.scope || 'Not available'
     });
 });
 
-// Authentication status endpoint
+// Enhanced authentication status endpoint
 app.get('/api/auth/status', async (req, res) => {
     try {
         await ensureValidToken();
+        
+        // Test connectivity
+        const connectivityLevel = await testExternalClientAppConnectivity();
+        
         res.json({
             authenticated: true,
+            authMethod: 'external_client_app',
             instanceUrl: salesforceAuth.instanceUrl,
+            tokenType: salesforceAuth.tokenType,
             expiresAt: salesforceAuth.expiresAt,
-            orgId: process.env.SALESFORCE_ORG_ID,
-            loyaltyProgramId: SALESFORCE_CONFIG.loyaltyProgramId
+            orgId: SALESFORCE_CONFIG.orgId,
+            loyaltyProgramId: SALESFORCE_CONFIG.loyaltyProgramId,
+            connectivityLevel: connectivityLevel,
+            scope: salesforceAuth.scope
         });
     } catch (error) {
         res.json({
             authenticated: false,
-            error: error.message
+            authMethod: 'external_client_app',
+            error: error.message,
+            troubleshooting: {
+                checkClientId: 'Verify SALESFORCE_CLIENT_ID in Heroku Config Vars',
+                checkClientSecret: 'Verify SALESFORCE_CLIENT_SECRET in Heroku Config Vars',
+                checkCredentials: 'Verify username, password, and security token',
+                checkPermissions: 'Ensure API user has Loyalty Management permissions'
+            }
         });
     }
 });
 
-// Health check with authentication status
+// Enhanced health check with External Client App diagnostics
 app.get('/health', async (req, res) => {
     let authStatus = 'unknown';
     let loyaltyStatus = 'unknown';
+    let connectivityLevel = 'unknown';
+    let diagnostics = {};
     
     try {
         await ensureValidToken();
         authStatus = 'authenticated';
         
-        // Test loyalty API connectivity
-        if (SALESFORCE_CONFIG.loyaltyProgramId) {
-            try {
-                await callSalesforceAPI(`sobjects/LoyaltyProgram/${SALESFORCE_CONFIG.loyaltyProgramId}`);
-                loyaltyStatus = 'connected';
-            } catch (loyaltyError) {
-                loyaltyStatus = 'program_not_found';
-            }
-        } else {
-            loyaltyStatus = 'program_not_configured';
+        // Test External Client App connectivity and capabilities
+        connectivityLevel = await testExternalClientAppConnectivity();
+        
+        switch (connectivityLevel) {
+            case 'full_loyalty_access':
+                loyaltyStatus = 'full_access';
+                break;
+            case 'soql_only':
+                loyaltyStatus = 'soql_fallback';
+                break;
+            case 'basic_api_only':
+                loyaltyStatus = 'limited_access';
+                break;
+            case 'no_loyalty_config':
+                loyaltyStatus = 'not_configured';
+                break;
+            default:
+                loyaltyStatus = 'unavailable';
         }
+        
+        diagnostics = {
+            clientAppType: 'external_client_app',
+            tokenType: salesforceAuth.tokenType,
+            apiVersion: SALESFORCE_CONFIG.apiVersion,
+            scope: salesforceAuth.scope
+        };
+        
     } catch (error) {
         authStatus = 'failed';
+        diagnostics.error = error.message;
+        
+        // Provide specific troubleshooting for External Client App
+        if (error.message.includes('invalid_client_id')) {
+            diagnostics.fix = 'Check External Client App Consumer Key';
+        } else if (error.message.includes('invalid_grant')) {
+            diagnostics.fix = 'Check username, password, and security token';
+        } else if (error.message.includes('unsupported_grant_type')) {
+            diagnostics.fix = 'Enable OAuth settings in External Client App';
+        }
     }
     
     res.json({
         status: 'healthy',
-        salesforce: authStatus,
-        loyalty: loyaltyStatus,
         timestamp: new Date().toISOString(),
-        version: '1.0.0'
+        version: '2.0.0',
+        authentication: {
+            status: authStatus,
+            method: 'external_client_app'
+        },
+        loyalty: {
+            status: loyaltyStatus,
+            connectivity: connectivityLevel
+        },
+        diagnostics
     });
 });
 
-// Initialize Salesforce connection on startup
-async function initializeSalesforce() {
+// Initialize External Client App connection on startup
+async function initializeExternalClientApp() {
     try {
-        if (SALESFORCE_CONFIG.clientId && SALESFORCE_CONFIG.clientSecret) {
-            await authenticateWithSalesforce();
-            console.log('✅ Salesforce authentication initialized');
-            
-            if (SALESFORCE_CONFIG.loyaltyProgramId) {
-                console.log(`🎯 Using Loyalty Program: ${SALESFORCE_CONFIG.loyaltyProgramId}`);
-            } else {
-                console.log('⚠️ Loyalty Program ID not configured');
-            }
-        } else {
-            console.log('⚠️ Salesforce credentials not configured - running in mock mode');
+        console.log('🚀 Initializing External Client App connection...');
+        
+        // Validate configuration
+        const requiredVars = ['clientId', 'clientSecret', 'username', 'password', 'securityToken'];
+        const missingVars = requiredVars.filter(var => !SALESFORCE_CONFIG[var]);
+        
+        if (missingVars.length > 0) {
+            console.log(`⚠️ Missing External Client App configuration: ${missingVars.join(', ')}`);
+            console.log('🔄 Running in mock mode...');
+            return;
         }
+        
+        // Test authentication
+        await authenticateWithSalesforce();
+        console.log('✅ External Client App authentication initialized');
+        
+        // Test connectivity levels
+        const connectivityLevel = await testExternalClientAppConnectivity();
+        console.log(`🔗 Connectivity Level: ${connectivityLevel}`);
+        
+        if (SALESFORCE_CONFIG.loyaltyProgramId) {
+            console.log(`🎯 Using Loyalty Program: ${SALESFORCE_CONFIG.loyaltyProgramId}`);
+        } else {
+            console.log('⚠️ Loyalty Program ID not configured');
+        }
+        
+        console.log('🎉 External Client App setup complete!');
+        
     } catch (error) {
-        console.error('❌ Salesforce initialization failed:', error.message);
+        console.error('❌ External Client App initialization failed:', error.message);
         console.log('🔄 Continuing in mock mode...');
+        
+        // Provide helpful troubleshooting
+        if (error.message.includes('invalid_client_id')) {
+            console.log('💡 Check: External Client App Consumer Key in Heroku Config Vars');
+        } else if (error.message.includes('invalid_grant')) {
+            console.log('💡 Check: Username, password, and security token combination');
+        } else if (error.message.includes('unsupported_grant_type')) {
+            console.log('💡 Check: OAuth settings enabled in External Client App');
+        }
     }
 }
 
@@ -728,11 +893,14 @@ app.get('/', (req, res) => {
 app.listen(PORT, async () => {
     console.log(`🚀 POS Simulator running on port ${PORT}`);
     console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔧 Using: External Client App authentication`);
     
-    // Initialize Salesforce connection
-    await initializeSalesforce();
+    // Initialize External Client App connection
+    await initializeExternalClientApp();
     
     console.log(`🌐 App URL: http://localhost:${PORT}`);
+    console.log(`📋 Health Check: http://localhost:${PORT}/health`);
+    console.log(`🔐 Auth Status: http://localhost:${PORT}/api/auth/status`);
 });
 
 // Graceful shutdown
