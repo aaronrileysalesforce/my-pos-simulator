@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Cart Transaction Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        h2 {
+            color: #2d3748;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .config-section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-success {
+            background: #10b981;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .cart-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .cart-item-price {
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .qty-input {
+            width: 60px;
+            text-align: center;
+        }
+
+        .remove-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .remove-btn:hover {
+            background: #dc2626;
+        }
+
+        .cart-total {
+            background: #1f2937;
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 16px 0;
+        }
+
+        .api-log {
+            background: #1f2937;
+            color: #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .api-call {
+            margin-bottom: 20px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 12px;
+        }
+
+        .api-call-title {
+            color: #60a5fa;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .api-request {
+            background: #374151;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .api-response {
+            background: #065f46;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-success {
+            background: #10b981;
+        }
+
+        .status-error {
+            background: #ef4444;
+        }
+
+        .status-pending {
+            background: #f59e0b;
+        }
+
+        .promotions-section {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .promotion-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .apply-btn {
+            background: #059669;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .apply-btn:hover {
+            background: #047857;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Cart Panel -->
+        <div class="panel">
+            <div class="header">
+                <h1>POS Cart</h1>
+                <button class="btn btn-secondary" onclick="clearCart()">Clear Cart</button>
+            </div>
+
+            <!-- Configuration Section -->
+            <div class="config-section">
+                <h2>Salesforce Configuration</h2>
+                <div class="input-group">
+                    <label for="orgId">Organization ID:</label>
+                    <input type="text" id="orgId" placeholder="Enter Salesforce Org ID" value="">
+                </div>
+                <div class="input-group">
+                    <label for="customerId">Customer ID:</label>
+                    <input type="text" id="customerId" placeholder="Enter Customer ID" value="CUST_001">
+                </div>
+                <button class="btn" onclick="saveConfiguration()">Save Configuration</button>
+            </div>
+
+            <!-- Add Product Section -->
+            <div class="config-section">
+                <h2>Add Product</h2>
+                <div class="input-group">
+                    <label for="productName">Product Name:</label>
+                    <input type="text" id="productName" placeholder="Enter product name">
+                </div>
+                <div class="input-group">
+                    <label for="productPrice">Price:</label>
+                    <input type="number" id="productPrice" placeholder="0.00" step="0.01">
+                </div>
+                <div class="input-group">
+                    <label for="productSku">SKU:</label>
+                    <input type="text" id="productSku" placeholder="Enter SKU">
+                </div>
+                <button class="btn" onclick="addProduct()">Add to Cart</button>
+            </div>
+
+            <!-- Cart Items -->
+            <div id="cartItems">
+                <!-- Cart items will be populated here -->
+            </div>
+
+            <div class="cart-total" id="cartTotal">
+                Total: $0.00
+            </div>
+
+            <!-- Available Promotions -->
+            <div class="promotions-section" id="promotionsSection" style="display: none;">
+                <h2>Available Promotions</h2>
+                <div id="promotionsList">
+                    <!-- Promotions will be populated here -->
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 12px; margin-top: 16px;">
+                <button class="btn" onclick="getPromotions()">Get Promotions</button>
+                <button class="btn btn-success" onclick="executeTransaction()">Execute Transaction</button>
+            </div>
+        </div>
+
+        <!-- API Panel -->
+        <div class="panel">
+            <div class="header">
+                <h1>API Calls & Responses</h1>
+                <button class="btn btn-secondary" onclick="clearApiLog()">Clear Log</button>
+            </div>
+
+            <div id="apiLog">
+                <div class="api-log">
+                    <div style="color: #9ca3af;">API calls will appear here...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application state
+        let cart = [];
+        let promotions = [];
+        let apiCallCounter = 0;
+        let configuration = {
+            orgId: '',
+            customerId: 'CUST_001'
+        };
+
+        // Load configuration from localStorage on page load
+        window.onload = function() {
+            loadConfiguration();
+            updateCartDisplay();
+        };
+
+        function loadConfiguration() {
+            const saved = localStorage.getItem('pos_config');
+            if (saved) {
+                configuration = JSON.parse(saved);
+                document.getElementById('orgId').value = configuration.orgId;
+                document.getElementById('customerId').value = configuration.customerId;
+            }
+        }
+
+        function saveConfiguration() {
+            configuration.orgId = document.getElementById('orgId').value;
+            configuration.customerId = document.getElementById('customerId').value;
+            localStorage.setItem('pos_config', JSON.stringify(configuration));
+            logApiCall('Configuration', 'Configuration saved successfully', { configuration });
+        }
+
+        function addProduct() {
+            const name = document.getElementById('productName').value;
+            const price = parseFloat(document.getElementById('productPrice').value);
+            const sku = document.getElementById('productSku').value;
+
+            if (!name || !price || !sku) {
+                alert('Please fill in all product fields');
+                return;
+            }
+
+            const product = {
+                id: Date.now().toString(),
+                name: name,
+                price: price,
+                sku: sku,
+                quantity: 1
+            };
+
+            cart.push(product);
+            updateCartDisplay();
+
+            // Clear form
+            document.getElementById('productName').value = '';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productSku').value = '';
+        }
+
+        function updateCartDisplay() {
+            const cartItems = document.getElementById('cartItems');
+            const cartTotal = document.getElementById('cartTotal');
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">Cart is empty</div>';
+                cartTotal.textContent = 'Total: $0.00';
+                return;
+            }
+
+            let total = 0;
+            cartItems.innerHTML = cart.map(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                return `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">$${item.price.toFixed(2)} × ${item.quantity}</div>
+                            <div style="font-size: 12px; color: #6b7280;">SKU: ${item.sku}</div>
+                        </div>
+                        <div class="cart-item-actions">
+                            <input type="number" class="qty-input" value="${item.quantity}" min="1" 
+                                   onchange="updateQuantity('${item.id}', this.value)">
+                            <button class="remove-btn" onclick="removeItem('${item.id}')">Remove</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            cartTotal.textContent = `Total: $${total.toFixed(2)}`;
+        }
+
+        function updateQuantity(itemId, quantity) {
+            const item = cart.find(item => item.id === itemId);
+            if (item) {
+                item.quantity = parseInt(quantity);
+                updateCartDisplay();
+            }
+        }
+
+        function removeItem(itemId) {
+            cart = cart.filter(item => item.id !== itemId);
+            updateCartDisplay();
+        }
+
+        function clearCart() {
+            cart = [];
+            promotions = [];
+            updateCartDisplay();
+            document.getElementById('promotionsSection').style.display = 'none';
+        }
+
+        function getPromotions() {
+            if (!configuration.orgId) {
+                alert('Please configure Organization ID first');
+                return;
+            }
+
+            if (cart.length === 0) {
+                alert('Please add items to cart first');
+                return;
+            }
+
+            // Simulate API call to get promotions
+            const requestData = {
+                orgId: configuration.orgId,
+                customerId: configuration.customerId,
+                cartItems: cart.map(item => ({
+                    sku: item.sku,
+                    quantity: item.quantity,
+                    price: item.price
+                }))
+            };
+
+            logApiCall('GET Promotions', 'Fetching available promotions...', requestData, 'pending');
+
+            // Simulate API response
+            setTimeout(() => {
+                const mockPromotions = [
+                    {
+                        id: 'PROMO_001',
+                        name: '10% Off Electronics',
+                        type: 'percentage',
+                        value: 10,
+                        description: 'Get 10% off on all electronics items',
+                        eligible: true
+                    },
+                    {
+                        id: 'VOUCHER_001',
+                        name: '$5 Off Purchase',
+                        type: 'fixed',
+                        value: 5,
+                        description: 'Get $5 off your total purchase',
+                        eligible: true
+                    },
+                    {
+                        id: 'COUPON_001',
+                        name: 'Free Shipping',
+                        type: 'shipping',
+                        value: 0,
+                        description: 'Free shipping on orders over $50',
+                        eligible: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) >= 50
+                    }
+                ];
+
+                promotions = mockPromotions;
+                displayPromotions();
+
+                logApiCall('GET Promotions', 'Promotions retrieved successfully', {
+                    promotions: mockPromotions,
+                    count: mockPromotions.length
+                }, 'success');
+            }, 1000);
+        }
+
+        function displayPromotions() {
+            const promotionsSection = document.getElementById('promotionsSection');
+            const promotionsList = document.getElementById('promotionsList');
+
+            if (promotions.length === 0) {
+                promotionsSection.style.display = 'none';
+                return;
+            }
+
+            promotionsSection.style.display = 'block';
+            promotionsList.innerHTML = promotions.map(promo => `
+                <div class="promotion-item">
+                    <div>
+                        <div style="font-weight: 600;">${promo.name}</div>
+                        <div style="font-size: 12px; color: #6b7280;">${promo.description}</div>
+                        <div style="font-size: 12px; color: ${promo.eligible ? '#059669' : '#ef4444'};">
+                            ${promo.eligible ? 'Eligible' : 'Not Eligible'}
+                        </div>
+                    </div>
+                    <button class="apply-btn" ${!promo.eligible ? 'disabled' : ''} 
+                            onclick="applyPromotion('${promo.id}')">
+                        Apply
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function applyPromotion(promoId) {
+            const promotion = promotions.find(p => p.id === promoId);
+            if (promotion) {
+                logApiCall('Apply Promotion', `Applied promotion: ${promotion.name}`, {
+                    promotionId: promoId,
+                    promotion: promotion
+                }, 'success');
+                alert(`Promotion "${promotion.name}" applied successfully!`);
+            }
+        }
+
+        function executeTransaction() {
+            if (!configuration.orgId) {
+                alert('Please configure Organization ID first');
+                return;
+            }
+
+            if (cart.length === 0) {
+                alert('Cart is empty');
+                return;
+            }
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            const transactionData = {
+                transactionId: `TXN_${Date.now()}`,
+                orgId: configuration.orgId,
+                customerId: configuration.customerId,
+                timestamp: new Date().toISOString(),
+                items: cart.map(item => ({
+                    sku: item.sku,
+                    name: item.name,
+                    quantity: item.quantity,
+                    unitPrice: item.price,
+                    totalPrice: item.price * item.quantity
+                })),
+                subtotal: total,
+                tax: total * 0.08,
+                total: total * 1.08,
+                appliedPromotions: promotions.filter(p => p.eligible).map(p => p.id),
+                paymentMethod: 'credit_card',
+                status: 'pending'
+            };
+
+            logApiCall('Transaction Execution API', 'Executing transaction...', transactionData, 'pending');
+
+            // Simulate API response
+            setTimeout(() => {
+                const responseData = {
+                    ...transactionData,
+                    status: 'completed',
+                    confirmationNumber: `CONF_${Date.now()}`,
+                    loyaltyPointsEarned: Math.floor(total * 0.1),
+                    processedAt: new Date().toISOString()
+                };
+
+                logApiCall('Transaction Execution API', 'Transaction completed successfully', responseData, 'success');
+                
+                alert(`Transaction completed!\nConfirmation: ${responseData.confirmationNumber}\nLoyalty Points Earned: ${responseData.loyaltyPointsEarned}`);
+                
+                // Clear cart after successful transaction
+                clearCart();
+            }, 1500);
+        }
+
+        function logApiCall(title, message, data, status = 'success') {
+            apiCallCounter++;
+            const apiLog = document.getElementById('apiLog');
+            const timestamp = new Date().toISOString();
+            
+            const statusClass = status === 'success' ? 'status-success' : 
+                               status === 'error' ? 'status-error' : 'status-pending';
+            
+            const logEntry = `
+                <div class="api-call">
+                    <div class="api-call-title">
+                        <span class="status-indicator ${statusClass}"></span>
+                        ${apiCallCounter}. ${title} - ${timestamp}
+                    </div>
+                    <div class="api-request">
+                        <strong>Request:</strong><br>
+                        ${message}<br>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                    ${status !== 'pending' ? `
+                        <div class="api-response">
+                            <strong>Response:</strong><br>
+                            Status: ${status}<br>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            apiLog.innerHTML = logEntry + apiLog.innerHTML;
+        }
+
+        function clearApiLog() {
+            document.getElementById('apiLog').innerHTML = `
+                <div class="api-log">
+                    <div style="color: #9ca3af;">API calls will appear here...</div>
+                </div>
+            `;
+            apiCallCounter = 0;
+        }
+    </script>
+</body>
+</html>
