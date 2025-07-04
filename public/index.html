@@ -767,19 +767,23 @@
                     displayPromotions();
                     
                     logApiCall('GET Promotions', 'Promotions retrieved successfully', {
+                        member: data.member,
                         promotions: data.promotions,
-                        metadata: data.metadata
+                        metadata: data.metadata,
+                        source: data.source
                     }, 'success');
                     
-                    showAlert(`Found ${data.promotions.length} promotions!`, 'success');
+                    const memberInfo = data.member ? ` for ${data.member.name} (${data.member.tier} tier)` : '';
+                    showAlert(`Found ${data.promotions.length} promotions${memberInfo}!`, 'success');
                 } else {
                     throw new Error(data.error || 'Failed to fetch promotions');
                 }
             } catch (error) {
                 logApiCall('GET Promotions', 'Failed to fetch promotions', {
-                    error: error.message
+                    error: error.message,
+                    requestData: requestData
                 }, 'error');
-                showAlert(`Error: ${error.message}`, 'error');
+                showAlert(`Error fetching promotions: ${error.message}`, 'error');
             }
         }
 
@@ -811,19 +815,23 @@
                     vouchers = data.vouchers;
                     
                     logApiCall('GET Vouchers', 'Vouchers retrieved successfully', {
+                        member: data.member,
                         vouchers: data.vouchers,
-                        metadata: data.metadata
+                        metadata: data.metadata,
+                        source: data.source
                     }, 'success');
                     
-                    showAlert(`Found ${data.vouchers.length} vouchers!`, 'success');
+                    const memberInfo = data.member ? ` for ${data.member.name}` : '';
+                    showAlert(`Found ${data.vouchers.length} vouchers${memberInfo}!`, 'success');
                 } else {
                     throw new Error(data.error || 'Failed to fetch vouchers');
                 }
             } catch (error) {
                 logApiCall('GET Vouchers', 'Failed to fetch vouchers', {
-                    error: error.message
+                    error: error.message,
+                    requestData: requestData
                 }, 'error');
-                showAlert(`Error: ${error.message}`, 'error');
+                showAlert(`Error fetching vouchers: ${error.message}`, 'error');
             }
         }
 
@@ -917,9 +925,17 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    logApiCall('Transaction Execution API', 'Transaction completed successfully', data, 'success');
+                    logApiCall('Transaction Execution API', 'Transaction completed successfully', {
+                        transaction: data,
+                        member: data.member,
+                        loyaltyPoints: data.loyaltyPoints,
+                        source: data.source
+                    }, 'success');
                     
-                    showAlert(`Transaction completed!\nConfirmation: ${data.confirmationNumber}\nLoyalty Points Earned: ${data.loyaltyPoints.earned}`, 'success');
+                    const memberInfo = data.member ? `\nMember: ${data.member.name} (${data.member.tier})` : '';
+                    const pointsInfo = data.loyaltyPoints ? `\nPoints Earned: ${data.loyaltyPoints.earned}\nNew Balance: ${data.loyaltyPoints.newBalance}` : '';
+                    
+                    showAlert(`Transaction completed!${memberInfo}\nConfirmation: ${data.confirmationNumber}${pointsInfo}`, 'success');
                     
                     // Clear cart after successful transaction
                     setTimeout(() => {
@@ -930,7 +946,8 @@
                 }
             } catch (error) {
                 logApiCall('Transaction Execution API', 'Transaction failed', {
-                    error: error.message
+                    error: error.message,
+                    transactionData: transactionData
                 }, 'error');
                 showAlert(`Transaction failed: ${error.message}`, 'error');
             }
