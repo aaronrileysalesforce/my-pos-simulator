@@ -1,7 +1,7 @@
 {
   "name": "pos-cart-simulator",
-  "version": "1.0.0",
-  "description": "POS Cart Transaction Simulator with Salesforce Loyalty API Integration",
+  "version": "2.0.0",
+  "description": "POS Cart Transaction Simulator with Salesforce Loyalty Management API Integration using External Client Apps",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -13,7 +13,9 @@
     "salesforce",
     "loyalty",
     "api",
-    "heroku"
+    "heroku",
+    "external-client-app",
+    "connect-api"
   ],
   "author": "Your Name",
   "license": "MIT",
@@ -32,6 +34,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/pos-cart-simulator.git"
+    "url": "https://github.com/aaronrileysalesforce/my-pos-simulator.git"
+  },
+  "homepage": "https://github.com/aaronrileysalesforce/my-pos-simulator#readme",
+  "bugs": {
+    "url": "https://github.com/aaronrileysalesforce/my-pos-simulator/issues"
   }
 }
