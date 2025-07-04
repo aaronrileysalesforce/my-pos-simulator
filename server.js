@@ -80,19 +80,14 @@ async function authenticateWithSalesforce() {
         
         const authUrl = `${SALESFORCE_CONFIG.instanceUrl}/services/oauth2/token`;
         
-        // Try Client Credentials Flow first (preferred for server-to-server)
+        // For External Client Apps with modern flow options, try multiple approaches
         let authData;
-        try {
-            console.log('🔐 Attempting Client Credentials Flow...');
-            authData = new URLSearchParams({
-                grant_type: 'client_credentials',
-                client_id: SALESFORCE_CONFIG.clientId,
-                client_secret: SALESFORCE_CONFIG.clientSecret,
-                scope: 'api chatter_api'
-            });
-        } catch (clientCredentialsError) {
-            console.log('⚠️ Client Credentials Flow not available, falling back to Password Flow...');
-            // Fallback to Username-Password Flow
+        let grantType = 'unknown';
+        
+        // Method 1: Try Authorization Code with Client Credentials (if username/password available)
+        if (SALESFORCE_CONFIG.username && SALESFORCE_CONFIG.password && SALESFORCE_CONFIG.securityToken) {
+            console.log('🔐 Using Resource Owner Password Credentials Flow...');
+            grantType = 'password';
             authData = new URLSearchParams({
                 grant_type: 'password',
                 client_id: SALESFORCE_CONFIG.clientId,
@@ -101,10 +96,24 @@ async function authenticateWithSalesforce() {
                 password: SALESFORCE_CONFIG.password + SALESFORCE_CONFIG.securityToken,
                 scope: 'api chatter_api refresh_token openid'
             });
+        } else {
+            // Method 2: Try Client Credentials Flow (for service-to-service)
+            console.log('🔐 Using Client Credentials Flow...');
+            grantType = 'client_credentials';
+            authData = new URLSearchParams({
+                grant_type: 'client_credentials',
+                client_id: SALESFORCE_CONFIG.clientId,
+                client_secret: SALESFORCE_CONFIG.clientSecret,
+                scope: 'api chatter_api'
+            });
         }
 
         console.log(`📡 Authenticating with: ${authUrl}`);
+        console.log(`🔑 Grant Type: ${grantType}`);
         console.log(`🔑 Client ID: ${SALESFORCE_CONFIG.clientId.substring(0, 10)}...`);
+        if (SALESFORCE_CONFIG.username) {
+            console.log(`👤 Username: ${SALESFORCE_CONFIG.username}`);
+        }
 
         const response = await axios.post(authUrl, authData, {
             headers: {
@@ -126,12 +135,12 @@ async function authenticateWithSalesforce() {
             authenticated: true,
             error: null,
             lastAttempt: salesforceAuth.lastAttempt,
-            grantType: authData.get('grant_type')
+            grantType: grantType
         };
 
         console.log('✅ External Client App OAuth authentication successful!');
         console.log(`📍 Instance: ${salesforceAuth.instanceUrl}`);
-        console.log(`🔐 Grant Type: ${salesforceAuth.grantType}`);
+        console.log(`🔐 Grant Type Used: ${salesforceAuth.grantType}`);
         console.log(`🔐 Token Type: ${salesforceAuth.tokenType}`);
         console.log(`📅 Expires: ${new Date(salesforceAuth.expiresAt).toISOString()}`);
         console.log(`🎯 Scope: ${salesforceAuth.scope}`);
@@ -157,9 +166,10 @@ async function authenticateWithSalesforce() {
         } else if (error.response?.data?.error === 'invalid_client') {
             console.error('💡 Fix: Ensure External Client App is deployed and OAuth flows are enabled');
         } else if (error.response?.data?.error === 'invalid_grant') {
-            console.error('💡 Fix: Check username, password, and security token combination OR enable Client Credentials Flow');
-        } else if (error.response?.data?.error === 'unsupported_grant_type') {
-            console.error('💡 Fix: Enable Client Credentials Flow or Authorization Code Flow in External Client App');
+            console.error('💡 Fix: Check username, password, and security token combination');
+        } else if (error.response?.data?.error === 'unsupported_grant_type' || errorMessage.includes('grant type not supported')) {
+            console.error('💡 Fix: Enable "Authorization Code and Credentials Flow" in External Client App Flow Enablement');
+            console.error('💡 Alternative: Provide SALESFORCE_USERNAME, SALESFORCE_PASSWORD, SALESFORCE_SECURITY_TOKEN for password flow');
         } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
             console.error('💡 Fix: Check network connectivity and Salesforce instance URL');
         }
