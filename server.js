@@ -17,6 +17,7 @@ app.use(express.static('public'));
 const SALESFORCE_CONFIG = {
     clientId: process.env.SALESFORCE_CLIENT_ID,
     clientSecret: process.env.SALESFORCE_CLIENT_SECRET,
+    apiName: process.env.SALESFORCE_CLIENT_API_NAME, // Add API Name support
     username: process.env.SALESFORCE_USERNAME,
     password: process.env.SALESFORCE_PASSWORD,
     securityToken: process.env.SALESFORCE_SECURITY_TOKEN,
@@ -284,6 +285,7 @@ app.get('/api/config', (req, res) => {
         loyaltyProgramId: SALESFORCE_CONFIG.loyaltyProgramId || null,
         apiVersion: SALESFORCE_CONFIG.apiVersion,
         authMethod: 'external_client_app',
+        clientApiName: SALESFORCE_CONFIG.apiName || null, // Include API Name
         tokenType: salesforceAuth.tokenType,
         scope: salesforceAuth.scope || null,
         error: salesforceAuth.error,
