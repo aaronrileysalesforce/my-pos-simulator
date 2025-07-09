@@ -82,32 +82,17 @@ async function authenticateWithSalesforce() {
         
         // For External Client Apps with modern flow options, try multiple approaches
         let authData;
-        let grantType = 'unknown';
+        const grantType = 'client_credentials';
         
-        // Method 1: Try Authorization Code with Client Credentials (if username/password available)
-        if (SALESFORCE_CONFIG.username && SALESFORCE_CONFIG.password && SALESFORCE_CONFIG.securityToken) {
-            console.log('🔐 Using Resource Owner Password Credentials Flow...');
-            grantType = 'password';
-            authData = new URLSearchParams({
-                grant_type: 'password',
-                client_id: SALESFORCE_CONFIG.clientId,
-                client_secret: SALESFORCE_CONFIG.clientSecret,
-                username: SALESFORCE_CONFIG.username,
-                password: SALESFORCE_CONFIG.password + SALESFORCE_CONFIG.securityToken,
-                scope: 'api chatter_api refresh_token openid'
-            });
-        } else {
+        
             // Method 2: Try Client Credentials Flow (for service-to-service)
             console.log('🔐 Using Client Credentials Flow...');
-            grantType = 'client_credentials';
             authData = new URLSearchParams({
                 grant_type: 'client_credentials',
                 client_id: SALESFORCE_CONFIG.clientId,
                 client_secret: SALESFORCE_CONFIG.clientSecret,
-                scope: 'api chatter_api'
             });
-        }
-
+        
         console.log(`📡 Authenticating with: ${authUrl}`);
         console.log(`🔑 Grant Type: ${grantType}`);
         console.log(`🔑 Client ID: ${SALESFORCE_CONFIG.clientId.substring(0, 10)}...`);
